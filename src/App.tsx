@@ -1,24 +1,15 @@
 
 
 import './App.css'
-import Form from './Components/Form'
+import Button from "./Components/Button"
 
 function App() {
   
   
-  function logic(data: Record<string, string>){
-    console.log(data)
-  }
+  
   return (
     <>
-      <Form 
-      fields={[
-        { name: "email", label: "Email", type: "email" },
-        { name: "password", label: "Password", type: "password" },
-        { name: "username", label: "Username", type: "Username"}
-      ]}
-      onSubmit={(data) => logic(data)}
-      />
+      <Button variant = "secondary" size= "lg" type = "submit">Hi</Button>
     </>
   )
 }
