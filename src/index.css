@@ -1,0 +1,136 @@
+:root {
+  /* Finance-friendly font stack */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Helvetica, Arial, sans-serif;
+
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Force light mode */
+  color-scheme: light;
+  color: #212121; /* dark text */
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #1976d2; /* finance blue */
+  text-decoration: none;
+}
+a:hover {
+  color: #1565c0;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f5f5f5; /* light gray background */
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  color: #1976d2;
+}
+
+button {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: #212121;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+
+
+@media (prefers-color-scheme: light) {
+  :root {
+    
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* Main button "base class" */
+.btn {
+  display: inline-block;
+  font-family: inherit;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin: 4px 2px;
+}
+
+.btn-primary {
+  background-color: #1976d2;
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background-color: #1565c0;
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #212121;
+  border: 1px solid #ccc;
+}
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-green {
+  background-color: #388e3c;
+  color: #ffffff;
+}
+.btn-green:hover {
+  background-color: #2e7d32;
+}
+
+.btn-red {
+  background-color: #d32f2f;
+  color: #ffffff;
+}
+.btn-red:hover {
+  background-color: #b71c1c;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.btn-md {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.btn-lg {
+  padding: 1rem 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
