@@ -6,7 +6,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Force light mode */
+  /* Light mode defaults */
   color-scheme: light;
   color: #212121; /* dark text */
   background-color: #ffffff;
@@ -15,30 +15,40 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --background-color: #ffffff;
+  --primary-text-color: #1976d2;
+  --text-color: #212121;
+  --button-bg: #ffffff;
+  --button-color: #212121;
+  --button-hover-bg: #f9f9f9;
+  --link-color: #1976d2;
+  --link-hover-color: #1565c0;
 }
 
 a {
   font-weight: 500;
-  color: #1976d2; /* finance blue */
+  color: var(--link-color); 
   text-decoration: none;
 }
 a:hover {
-  color: #1565c0;
+  color: var(--link-hover-color);
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+
+  
   min-width: 320px;
   min-height: 100vh;
-  background-color: #f5f5f5; /* light gray background */
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-  color: #1976d2;
+  color: var(--primary-text-color)
 }
 
 button {
@@ -48,8 +58,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #ffffff;
-  color: #212121;
+  background-color: var(--button-bg);
+  color: var(--button-color);
   cursor: pointer;
   transition: all 0.25s ease;
 }
@@ -92,9 +102,8 @@ button {
 }
 
 .btn-secondary {
-  background-color: #f5f5f5;
+  background-color: #ffffff;
   color: #212121;
-  border: 1px solid #ccc;
 }
 .btn-secondary:hover {
   background-color: #e0e0e0;
@@ -134,3 +143,39 @@ button {
   line-height: 1.75rem;
 }
 
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --background-color: #0a0a0a;
+  --primary-text-color: #f6f6f6;
+  --text-color: #f6f6f6;
+  --button-bg: #1a1a1a;
+  --button-color: #f6f6f6;
+  --button-hover-bg: #2a2a2a;
+  --link-color: #64b5f6;
+  --link-hover-color: #90caf9;
+}
+
+html[data-theme="dark"] body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+html[data-theme="dark"] button {
+  background-color: var(--button-bg);
+  color: var(--button-color);
+  border-color: #444;
+}
+
+html[data-theme="dark"] button:hover {
+  background-color: var(--button-hover-bg);
+}
+
+html[data-theme="dark"] .btn-secondary {
+  background-color: #1a1a1a;
+  color: #f6f6f6;
+  border-color: #444;
+}
+
+html[data-theme="dark"] .btn-secondary:hover {
+  background-color: #2a2a2a;
+}
