@@ -9,23 +9,34 @@ import {
 } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import { fetchCandleData } from "../utils/FetchCandleData";
-
-
-
-export function CandleStickChart() {
+import { useTheme } from "../hooks/useTheme";
+interface CandleStickChartProps{
+  coin: string
+}
+export const CandleStickChart:React.FC<CandleStickChartProps> = ({coin}) => {
+    
+  const { isDark } = useTheme();
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const oldestTimeRef = useRef<UTCTimestamp | null>(null);
   const isLoadingRef = useRef(false);
-
+  
   const [data, setData] = useState<CandlestickData<UTCTimestamp>[]>([]);
   
+
   useEffect(() => {
     if (!chartContainerRef.current) return;
     
     const chart = createChart(chartContainerRef.current, {
-      layout: { background: { type: ColorType.Solid, color: "white" }, textColor: "black" },
+      layout: { 
+        background: { type: ColorType.Solid, color: isDark ? "black" : "white" }, 
+        textColor: isDark ? "#d1d4dc" : "#191919" 
+      },
+      grid: {
+        vertLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
+        horzLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
+      },
       width: chartContainerRef.current.clientWidth,
       height: 400,
     });
@@ -49,30 +60,43 @@ export function CandleStickChart() {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, []);
+  }, []); 
 
+  
+  useEffect(() => {
+    if (!chartRef.current) return;
+    
+    chartRef.current.applyOptions({
+      layout: { 
+        background: { type: ColorType.Solid, color: isDark ? "black" : "white" }, 
+        textColor: isDark ? "#d1d4dc" : "#191919" 
+      },
+      grid: {
+        vertLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
+        horzLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
+      },
+    });
+  }, [isDark]);
 
   useEffect(() => {
-    fetchCandleData().then(candles => {
+    fetchCandleData(coin).then(candles => {
       setData(candles);
       oldestTimeRef.current = candles[0].time;
       seriesRef.current?.setData(candles);
 
-     
       if (chartRef.current) {
         const chart: IChartApi = chartRef.current;
         chart.timeScale().fitContent();
       }
     });
-  }, []);
-
+  }, [coin]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!data.length) return;
 
       const latestTime = data[data.length - 1].time;
-      const newCandles = await fetchCandleData("BTCUSDT", "1h", 10);
+      const newCandles = await fetchCandleData(coin, "1h", 10);
 
       newCandles.forEach(c => {
         if (c.time > latestTime) {
@@ -83,8 +107,7 @@ export function CandleStickChart() {
     }, 10_000);
 
     return () => clearInterval(interval);
-  }, [data]);
-
+  }, [data, isDark, coin]);
 
   useEffect(() => {
     if (!chartRef.current) return;

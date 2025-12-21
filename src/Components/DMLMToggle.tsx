@@ -1,28 +1,11 @@
-import { useEffect } from "react";
+
+import { useTheme } from "../hooks/useTheme";
 import Button from "./Button";
-import useLocalStorage from "use-local-storage";
-
 export const Toggle = () => {
-  const preference = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const [isDark, setIsDark] = useLocalStorage("isDark", preference);
-
-  useEffect(() => {
-    const root = document.documentElement; // Fetches the root styling element
-    if (isDark) {
-      root.setAttribute("data-theme", "dark"); // Sets the data-theme to dark
-    } else {
-      root.setAttribute("data-theme", "light"); // Sets the data-theme to light
-    }
-    //Each time the isDark variable changes the useEffect is triggered
-  }, [isDark]);
-
-  const handleToggle = () => {
-    setIsDark(!isDark);
-  };
-
+  const {isDark, toggleTheme} = useTheme();
   return (
     <Button 
-      onClick={handleToggle} 
+      onClick={toggleTheme} 
       size="lg" 
       type="button" 
       variant="secondary"

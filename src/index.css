@@ -6,38 +6,37 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Light mode defaults */
+  /* Light mode defaults – softer, finance-style palette */
   color-scheme: light;
-  color: #212121; /* dark text */
-  background-color: #ffffff;
+  color: #0f172a; /* slate-900 */
+  background-color: #f3f4f6; /* slate-100 */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --background-color: #ffffff;
-  --primary-text-color: #1976d2;
-  --text-color: #212121;
-  --button-bg: #ffffff;
-  --button-color: #212121;
-  --button-hover-bg: #f9f9f9;
-  --link-color: #1976d2;
-  --link-hover-color: #1565c0;
+  --background-color: #f3f4f6; /* app shell */
+  --surface-color: #ffffff; /* cards/panels */
+  --muted-surface-color: #e5e7eb; /* subtle backgrounds */
+  --primary-text-color: #0f172a;
+  --text-color: #000000;
+  --muted-text-color: #6b7280;
+  --button-bg: #111827;
+  --button-color: #f9fafb;
+  --button-hover-bg: #020617;
+  --link-color: #1d4ed8; /* blue-700 */
+  --link-hover-color: #1e40af; /* blue-800 */
 }
 
 a {
   font-weight: 500;
-  color: var(--link-color); 
+  color: inherit;
   text-decoration: none;
 }
-a:hover {
-  color: var(--link-hover-color);
-}
+
 
 body {
   margin: 0;
-
-  
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--background-color);
@@ -94,35 +93,36 @@ button {
 }
 
 .btn-primary {
-  background-color: #1976d2;
-  color: #ffffff;
+  background-color: #1d4ed8; /* blue-700 */
+  color: #f9fafb;
 }
 .btn-primary:hover {
-  background-color: #1565c0;
+  background-color: #1e40af; /* blue-800 */
 }
 
 .btn-secondary {
-  background-color: #ffffff;
-  color: #212121;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid #e5e7eb;
 }
 .btn-secondary:hover {
-  background-color: #e0e0e0;
+  background-color: #e5e7eb;
 }
 
 .btn-green {
-  background-color: #388e3c;
-  color: #ffffff;
+  background-color: #16a34a; /* green-600 */
+  color: #f9fafb;
 }
 .btn-green:hover {
-  background-color: #2e7d32;
+  background-color: #15803d; /* green-700 */
 }
 
 .btn-red {
-  background-color: #d32f2f;
-  color: #ffffff;
+  background-color: #dc2626; /* red-600 */
+  color: #f9fafb;
 }
 .btn-red:hover {
-  background-color: #b71c1c;
+  background-color: #b91c1c; /* red-700 */
 }
 
 .btn-sm {

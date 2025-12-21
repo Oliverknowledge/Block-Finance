@@ -13,7 +13,7 @@ export const Links = [
     },
     {
       link: "/Portfolio",
-      name: "Portfolio",
+      name: "Wallet dashboard",
     },
     {
       link: "/Leaderboard",

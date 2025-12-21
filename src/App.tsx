@@ -1,19 +1,91 @@
-import './index.css'
-import './App.css'
-import Navbar from './Components/Navbar'
-import { CandleStickChart } from './Components/TradingChart'
+import './index.css';
+import './App.css';
+
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { TradingProvider } from './context/TradingContext';
+import Navbar from './Components/Navbar';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Trade from './pages/Trade';
+import Stake from './pages/Stake';
+import Portfolio from './pages/Portfolio';
+import Leaderboard from './pages/Leaderboard';
+import Account from './pages/Account';
+
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <div className="px-8 py-6">Checking session...</div>;
+  }
+  if (!user) {
+    return <Navigate to="/Account" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
-    <div>
-      <div>
-      <Navbar/>
-      </div>
-      <div className="h-[400px] w-full flex-1bg-black text-white p-6">
-      <h1 className="text-3xl font-bold mb-6 ">Crypto Trading Simulator</h1>
-      <CandleStickChart/>
-    </div>
-    </div>
-  )
+    <ThemeProvider>
+      <AuthProvider>
+        <TradingProvider>
+          <>
+            <Navbar />
+            <main className="mt-10">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route
+                  path="/Dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/Trade"
+                  element={
+                    <ProtectedRoute>
+                      <Trade />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/Stake"
+                  element={
+                    <ProtectedRoute>
+                      <Stake />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/Portfolio"
+                  element={
+                    <ProtectedRoute>
+                      <Portfolio />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/Leaderboard"
+                  element={
+                    <ProtectedRoute>
+                      <Leaderboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/Account" element={<Account />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
+          </>
+        </TradingProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
+
