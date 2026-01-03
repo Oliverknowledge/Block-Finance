@@ -23,6 +23,7 @@ export const coinNameToTicker: Record<string, string> = {
   aave: 'AAVE',
   maker: 'MKR',
   'wrapped bitcoin': 'WBTC',
+  
 };
 
 // Simple list of major trading pairs used by the Trade page.

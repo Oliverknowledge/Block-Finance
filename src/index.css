@@ -6,28 +6,39 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Light mode defaults – softer, finance-style palette */
   color-scheme: light;
-  color: #0f172a; /* slate-900 */
-  background-color: #f3f4f6; /* slate-100 */
+  color: #0f172a; 
+  background-color: #f3f4f6; 
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --background-color: #f3f4f6; /* app shell */
-  --surface-color: #ffffff; /* cards/panels */
-  --muted-surface-color: #e5e7eb; /* subtle backgrounds */
+  --background-color: #f3f4f6; 
+  --surface-color: #ffffff; 
+  --muted-surface-color: #e5e7eb; 
   --primary-text-color: #0f172a;
   --text-color: #000000;
   --muted-text-color: #6b7280;
   --button-bg: #111827;
   --button-color: #f9fafb;
   --button-hover-bg: #020617;
-  --link-color: #1d4ed8; /* blue-700 */
-  --link-hover-color: #1e40af; /* blue-800 */
+  --link-color: #1d4ed8; 
+  --link-hover-color: #1e40af; 
 }
 
+.div{
+  background-color: var(--background-color);
+}
+.select{
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 1em;
+}
 a {
   font-weight: 500;
   color: inherit;
@@ -77,7 +88,10 @@ button {
     background-color: #f9f9f9;
   }
 }
-
+button:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 /* Main button "base class" */
 .btn {
   display: inline-block;
@@ -93,11 +107,11 @@ button {
 }
 
 .btn-primary {
-  background-color: #1d4ed8; /* blue-700 */
+  background-color: #1d4ed8; 
   color: #f9fafb;
 }
-.btn-primary:hover {
-  background-color: #1e40af; /* blue-800 */
+.btn-primary:not(:disabled):hover {
+  background-color: #1e40af;
 }
 
 .btn-secondary {
@@ -105,24 +119,24 @@ button {
   color: var(--text-color);
   border: 1px solid #e5e7eb;
 }
-.btn-secondary:hover {
+.btn-secondary:not(:disabled):hover {
   background-color: #e5e7eb;
 }
 
 .btn-green {
-  background-color: #16a34a; /* green-600 */
+  background-color: #16a34a; 
   color: #f9fafb;
 }
-.btn-green:hover {
-  background-color: #15803d; /* green-700 */
+.btn-green:not(:disabled):hover {
+  background-color: #15803d;
 }
 
 .btn-red {
-  background-color: #dc2626; /* red-600 */
+  background-color: #dc2626; 
   color: #f9fafb;
 }
-.btn-red:hover {
-  background-color: #b91c1c; /* red-700 */
+.btn-red:not(:disabled):hover {
+  background-color: #b91c1c; 
 }
 
 .btn-sm {
@@ -166,9 +180,7 @@ html[data-theme="dark"] button {
   border-color: #444;
 }
 
-html[data-theme="dark"] button:hover {
-  background-color: var(--button-hover-bg);
-}
+
 
 html[data-theme="dark"] .btn-secondary {
   background-color: #1a1a1a;
@@ -178,4 +190,31 @@ html[data-theme="dark"] .btn-secondary {
 
 html[data-theme="dark"] .btn-secondary:hover {
   background-color: #2a2a2a;
+}
+html[data-theme="dark"] .btn-green {
+  background-color: #16a34a; 
+  color: #f9fafb;
+}
+
+html[data-theme="dark"] .btn-green:not(:disabled):hover {
+  background-color: #15803d;
+}
+
+html[data-theme="dark"] .btn-red {
+  background-color: #dc2626; 
+  color: #f9fafb;
+}
+html[data-theme="dark"] .btn-red:not(:disabled):hover {
+  background-color: #b91c1c; 
+}
+
+html[data-theme="dark"]   button:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+html[data-theme="dark"]   select {
+  background-color: #1a1a1a;
+  color: #f6f6f6;
+  border-color: #444;
 }

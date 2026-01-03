@@ -11,9 +11,10 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Trade from './pages/Trade';
 import Stake from './pages/Stake';
-import Portfolio from './pages/Portfolio';
+import WalletDashboard from './pages/WalletDashboard';
 import Leaderboard from './pages/Leaderboard';
 import Account from './pages/Account';
+import Onboarding from './pages/Onboarding';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { user, loading } = useAuth();
@@ -61,10 +62,10 @@ function App() {
                   }
                 />
                 <Route
-                  path="/Portfolio"
+                  path="/Wallet-Dashboard"
                   element={
                     <ProtectedRoute>
-                      <Portfolio />
+                      <WalletDashboard/>
                     </ProtectedRoute>
                   }
                 />
@@ -76,6 +77,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route 
+                  path = "/Onboarding"
+                  element = {
+                    <ProtectedRoute>
+                      <Onboarding/>
+                    </ProtectedRoute>
+                  }
+                  />
                 <Route path="/Account" element={<Account />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>

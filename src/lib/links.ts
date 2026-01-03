@@ -12,7 +12,7 @@ export const Links = [
       name: "Stake",
     },
     {
-      link: "/Portfolio",
+      link: "/Wallet-Dashboard",
       name: "Wallet dashboard",
     },
     {
