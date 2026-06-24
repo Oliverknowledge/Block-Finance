@@ -5,7 +5,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY!
 );
 
-export default async function FetchXP(user: User | null): Promise<number> {
+export default async function fetchXp(user: User | null): Promise<number> {
   if (!user) return 0;
 
   const { data, error } = await supabase

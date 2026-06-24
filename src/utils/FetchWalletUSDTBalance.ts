@@ -1,5 +1,5 @@
 import { createClient, type User } from '@supabase/supabase-js'
-import { type wallet } from '../types/wallet.js';
+import { type wallet } from '../types/Wallet';
 import fetchWallets from './FetchWallets.js';
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
@@ -16,15 +16,17 @@ export default async function fetchWalletUSDTBalance(
     for (const wallet of wallets) {
         const { data, error } = await supabase
             .from('tblwalletassets')
-            .select('availableqty')
+            .select('availableqty,StakedQty')
             .eq('walletid', wallet.walletid)
             .eq('ticker', 'USDT')
             .single();
         if (error) {
             console.error(`Error fetching USDT balance for wallet ${wallet.walletid}:`, error);
             wallet['usdt_balance'] = 0;
+            wallet['staked_balance'] = 0;
         } else {
-            wallet['usdt_balance'] = data.availableqty;
+            wallet['usdt_balance'] = Number(data.availableqty ?? 0);
+            wallet['staked_balance'] = Number(data.StakedQty ?? 0);
         }
     }
     return wallets;

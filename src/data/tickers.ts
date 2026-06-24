@@ -29,11 +29,3 @@ export const coinNameToTicker: Record<string, string> = {
 // Simple list of major trading pairs used by the Trade page.
 // This is intentionally small and static – it is ONLY for the simulator UI,
 // not for driving live market data.
-export const tickers = [
-  { symbol: 'BTCUSDT', base: 'BTC', quote: 'USDT', close: 68000 },
-  { symbol: 'ETHUSDT', base: 'ETH', quote: 'USDT', close: 3500 },
-  { symbol: 'SOLUSDT', base: 'SOL', quote: 'USDT', close: 180 },
-  { symbol: 'XRPUSDT', base: 'XRP', quote: 'USDT', close: 0.6 },
-  { symbol: 'ADAUSDT', base: 'ADA', quote: 'USDT', close: 0.5 },
-  { symbol: 'DOGEUSDT', base: 'DOGE', quote: 'USDT', close: 0.2 },
-];

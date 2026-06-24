@@ -1,5 +1,5 @@
-import { createClient, type User } from '@supabase/supabase-js'
-import GenerateId from '../GenerateId';
+import { createClient } from '@supabase/supabase-js'
+import generateId from '../GenerateId';
 
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
@@ -7,15 +7,11 @@ const supabase = createClient(
 );
 
 export default async function placeMarketSell(
-  user: User,
   walletid: string,
   ticker: string,
   quantityToSell: number,
   price: number,
 ): Promise<boolean> {
-
-  if (!user) return false;
-
   //  Check asset balance
   const asset = await supabase
     .from('tblwalletassets')
@@ -28,7 +24,6 @@ export default async function placeMarketSell(
     console.error('Error fetching asset balance:', asset.error);
     return false;
   }
-  console.log(asset.data.availableqty, quantityToSell);
   if (asset.data.availableqty < quantityToSell) {
     console.error('Insufficient asset quantity');
     return false;
@@ -83,7 +78,7 @@ export default async function placeMarketSell(
   }
 
   // Insert trade
-  const tradeId = GenerateId();
+  const tradeId = generateId();
   const { error: tradeError } = await supabase
     .from('tbltrades')
     .insert([{
@@ -95,7 +90,8 @@ export default async function placeMarketSell(
       side: 'SELL',
       price,
       fee,
-      slippage
+      slippage,
+      createdate: new Date().toISOString(),
     }]);
 
   if (tradeError) {

@@ -5,8 +5,8 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY!
 );
 
-export default async function IncrementXP(user: User | null, quantity: number): Promise<null> {
-  if (!user) return null;
+export default async function incrementXp(user: User | null, quantity: number): Promise<void> {
+  if (!user) return;
 
   const {error: xpError} = await supabase.rpc('incrementXP', {
     user_id: user.id,
@@ -15,5 +15,4 @@ export default async function IncrementXP(user: User | null, quantity: number): 
   if (xpError) {
     console.error('Error checking onboarding status:', xpError);
   }
-  return null;
 }

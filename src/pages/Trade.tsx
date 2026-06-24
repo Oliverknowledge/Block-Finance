@@ -1,131 +1,224 @@
   import { useEffect, useState } from 'react';
   import { coinNameToTicker } from '../data/tickers';
-  import { CandleStickChart } from '../Components/TradingChart';
-  import SearchBar from '../Components/SearchBar';
-  import { useFetchCoinMetrics } from '../utils/FetchCoinMetrics';
-  import { useFetchCryptoNews } from '../utils/FetchCryptoNews';
-  import NewsCard from '../Components/NewsCard';
-  import Button from '../Components/Button';
+  import { TradingViewChart, type ChartMode } from '../Components/TradingChart';
+import SearchBar from '../Components/SearchBar';
+import { useFetchCoinMetrics } from '../utils/FetchCoinMetrics';
+import { useFetchCryptoNews } from '../utils/FetchCryptoNews';
+import NewsCard from '../Components/NewsCard';
+import Button from '../Components/Button';
+import Tooltip from '../Components/Tooltip';
 import fetchWalletUSDTBalance from '../utils/FetchWalletUSDTBalance';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import placeMarketBuy from '../utils/actions/placeMarketBuy';
 import placeMarketSell from '../utils/actions/placeMarketSell';
 import fetchWalletHolding from '../utils/FetchWalletHolding';
 import IncrementXP from '../utils/IncrementXP';
+import fetchUserLevel, { type UserExperienceLevel } from '../utils/fetchUserLevel';
+
+import type { wallet } from '../types/Wallet';
 
   type Side = 'buy' | 'sell';
+  type NoticeType = '' | 'Success' | 'Error';
+  type TradePosition = {
+    availableqty: number;
+    avgcost: number;
+  };
 
   const Trade = () => {
     const { user } = useAuth();
-    const [USD, setUSD ] = useState<number>(0);
-    const [coinName, setCoinName] = useState<string>('bitcoin');
+    const [USD, setUSD ] = useState(0);
+    const [percentage, setPercentage] = useState('');
+    const [coinName, setCoinName] = useState('bitcoin');
     const [side, setSide] = useState<Side>('buy');
     const logoToken = import.meta.env.VITE_LOGO_API;
-    //Use coinNameToTicker get ticker for respective crypto
     const baseTicker = coinNameToTicker[coinName] ?? 'BTC';
-    const [ wallets, setWallets] = useState<{ walletid: string; name: string; usdt_balance?: number }[]>([]);
-    const [selectedWalletID, setselectedWalletID] = useState<string>('');
-    const [ loading, setLoading ] = useState<boolean>(false);
-    const [message, setMessage] = useState<Record<string, string>>({message: '', type: ''});
-    const [position, setPosition] = useState<{
-      availableqty: number;
-      avgcost: number;
-    } | null>(null);
-   
+    const [wallets, setWallets] = useState<wallet[]>([]);
+  const [selectedWalletID, setSelectedWalletID] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [messageType, setMessageType] = useState<NoticeType>('');
+  const [binanceLastPrice, setBinanceLastPrice] = useState<number | null>(null);
+  const [binanceChange24h, setBinanceChange24h] = useState<number | null>(null);
+  const [position, setPosition] = useState<TradePosition | null>(null);
+  const [userLevel, setUserLevel] = useState<UserExperienceLevel>('beginner');
+  const [chartMode, setChartMode] = useState<ChartMode>('line');
+    
         
     useEffect(() => {
       async function fetchWallets() {
-        const wallets = await fetchWalletUSDTBalance(user);
-        if (wallets.length > 0) {
-          setWallets(wallets);
-          setselectedWalletID(wallets[0].walletid);
-          
+        const nextWallets = await fetchWalletUSDTBalance(user);
+        setWallets(nextWallets);
+        if (nextWallets.length > 0) {
+          setSelectedWalletID(String(nextWallets[0].walletid));
+        } else {
+          setSelectedWalletID('');
+          setPosition(null);
         }
       }
       fetchWallets();
       }, [user]);
 
+    useEffect(() => {
+      fetchUserLevel(user).then((level) => setUserLevel(level));
+    }, [user]);
+
+    useEffect(() => {
+      if (userLevel === 'beginner') {
+        setChartMode('line');
+      }
+    }, [userLevel]);
+
 
     
-    //Fetch coin metrics
-    const { data: metrics, loading: metricsLoading, error: metricsError } =
+    const { data: metrics, error: metricsError } =
       useFetchCoinMetrics(coinName);
-    //Fetch crypto news
     const { data: news, loading: newsLoading, error: newsError } =
       useFetchCryptoNews(coinName);
-    
-    const handleBuy =  async (e: React.FormEvent) => {  
-      // setLoading to true & prevent default form submission
-      e.preventDefault();
-      setLoading(true);
-   
-      const res = await placeMarketBuy(user!, selectedWalletID, baseTicker, USD, metrics!.price);
-      if (!res){
-        setMessage({message:'Insufficient funds in wallet',
-                  type: 'Error'});
-      }
-      else {
-        setMessage({message: `Successfully placed market buy for $${USD.toFixed(2)} of ${baseTicker} at $${metrics!.price.toFixed(2)}`,
-                    type: 'Success'});
-        //Increment XP
-        IncrementXP(user, 10);
-      }   
-      setLoading(false);
 
-      
-  };
-    const handleSell = async (e: React.FormEvent) => {
-      e.preventDefault();
-      //IncrementXP 
-    
+    const showMessage = (type: Exclude<NoticeType, ''>, text: string) => {
+      setMessageType(type);
+      setMessageText(text);
+    };
 
+    const clearMessage = () => {
+      setMessageType('');
+      setMessageText('');
+    };
+
+    const handleMarketDataChange = (marketData: {
+      lastPrice: number | null;
+      change24h: number | null;
+    }) => {
+      setBinanceLastPrice(marketData.lastPrice);
+      setBinanceChange24h(marketData.change24h);
+    };
+
+    const tradePrice = binanceLastPrice ?? 0;
+
+    const refreshWalletAndPosition = async () => {
+      const latestWallets = await fetchWalletUSDTBalance(user!);
+      setWallets(latestWallets);
+
+      const walletToUse = selectedWalletID || String(latestWallets[0]?.walletid || '');
+      setSelectedWalletID(walletToUse);
+      const latestPosition = await fetchWalletHolding(walletToUse, baseTicker);
+      setPosition(latestPosition);
+    };
+
+    const syncAfterTrade = async () => {
+      await IncrementXP(user!, 10);
+      await refreshWalletAndPosition();
+    };
+
+    const executeBuy =  async () => {
       setLoading(true);
-      const res = await placeMarketSell(user!, selectedWalletID, baseTicker, USD/metrics!.price, metrics!.price);
-      console.log(res)
-      if (!res){
-        setMessage({message:'Insufficient asset quantity in wallet',
-                  type: 'Error'});
+
+      try {
+        const res = await placeMarketBuy(selectedWalletID, baseTicker, USD, tradePrice);
+
+        if (!res) {
+          showMessage('Error', 'Insufficient funds in wallet');
+          return;
+        }
+
+        showMessage(
+          'Success',
+          `Successfully placed market buy for $${USD.toFixed(2)} of ${baseTicker} at $${tradePrice.toFixed(2)}`
+        );
+        await syncAfterTrade();
+      } finally {
+        setLoading(false);
       }
-      else {
-        setMessage({message: `Successfully placed market sell for $${USD.toFixed(2)} of ${baseTicker} at $${metrics!.price.toFixed(2)}`,
-                    type: 'Success'});
-        IncrementXP(user, 10);
-      }   
-      setLoading(false);
-    }
-    useEffect(() => {
-      if (!selectedWalletID || !baseTicker) {
-        setPosition(null);
+    };
+    const executeSell = async () => {
+      setLoading(true);
+
+      try {
+        const res = await placeMarketSell(
+          selectedWalletID,
+          baseTicker,
+          USD / tradePrice,
+          tradePrice
+        );
+
+        if (!res) {
+          showMessage('Error', 'Insufficient asset quantity in wallet');
+          return;
+        }
+
+        showMessage(
+          'Success',
+          `Successfully placed market sell for $${USD.toFixed(2)} of ${baseTicker} at $${tradePrice.toFixed(2)}`
+        );
+        await syncAfterTrade();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const handleBuy = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (isInvalidTradeAmount) {
         return;
       }
-    
+      void executeBuy();
+    };
+    const handleSell = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (isInvalidTradeAmount) {
+        return;
+      }
+      void executeSell();
+    };
+
+    useEffect(() => {
       fetchWalletHolding(selectedWalletID, baseTicker)
         .then(setPosition);
     }, [selectedWalletID, baseTicker]);
-    const currentPrice = metrics?.price ?? 0;
 
-const positionValue =
-  position ? position.availableqty * currentPrice : 0;
+const activePosition = position && position.availableqty > 0 ? position : null;
+const currentPrice = binanceLastPrice ?? (activePosition ? activePosition.avgcost : 0);
 
-const unrealizedPnL =
-  position
-    ? (currentPrice - position.avgcost) * position.availableqty
-    : 0;
+const positionValue = activePosition ? activePosition.availableqty * currentPrice : 0;
+const unrealizedPnL = activePosition
+  ? (currentPrice - activePosition.avgcost) * activePosition.availableqty
+  : 0;
+const pnlPercent = activePosition && activePosition.avgcost > 0
+  ? ((currentPrice - activePosition.avgcost) / activePosition.avgcost) * 100
+  : 0;
 
-const pnlPercent =
-  position && position.avgcost > 0
-    ? ((currentPrice - position.avgcost) / position.avgcost) * 100
-    : 0;
+const selectedWallet = wallets.find((wallet) => String(wallet.walletid) === String(selectedWalletID));
+const showBeginnerTooltips = userLevel === 'beginner';
+const whatIfScenarios = [-30, 20, 50];
+const showWhatIfBox = showBeginnerTooltips && activePosition;
+let MaxTradeUSD = 0;
+if (side === 'buy') {
+  MaxTradeUSD = selectedWallet?.usdt_balance ?? 0;
+} else if (activePosition) {
+  MaxTradeUSD = activePosition.availableqty * currentPrice;
+}
+
+const setUSDFromAmount = (nextUSD: number) => {
+  setUSD(nextUSD)
+  const nextPercent = (nextUSD / MaxTradeUSD * 100);
+  setPercentage(nextPercent.toFixed(2));
+};
+
+const setUSDFromPercent = (nextPercent: number) => {
+  setPercentage(nextPercent.toFixed(2));
+  setUSD((MaxTradeUSD * nextPercent) / 100);
+};
+const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
+
     return (
       <div className="px-6 md:px-20 pb-10  mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
 
-          <div className="rounded-2xl  shadow-sm border p-4 md:p-5">
+          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-4 md:p-5">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <div className = "flex flex-row items-center gap-2">
               <img
-              //Fetch the correct logo based on the ticker
               src={`https://img.logokit.com/crypto/${baseTicker}?token=${logoToken}`}
               alt={`${baseTicker} logo`}
               className="w-10 h-10 rounded-full shadow-md"
@@ -147,42 +240,71 @@ const pnlPercent =
               <div className="text-right">
                 <p className="text-[10px] uppercase ">Last price</p>
                 <p className="text-lg font-semibold ">
-                  {
-                    //Using conditional rendering to show loading state or price
-                  metricsLoading || !metrics
+                  {binanceLastPrice === null
                     ? '—'
-                    : `$${metrics.price.toLocaleString(undefined, {
+                    : `$${binanceLastPrice.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 8,
                       })}`}
                 </p>
-                {metrics && (
+                {binanceChange24h !== null && (
                   <p
                     className={`text-xs font-medium ${
-                      metrics.change24h >= 0
-                        ? 'text-emerald-500'
-                        : 'text-red-500'
+                      binanceChange24h >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
                     }`}
                   >
-                    {metrics.change24h >= 0 ? '▲' : '▼'}{' '}
-                    {metrics.change24h.toFixed(2)}% (24h)
+                    {binanceChange24h >= 0 ? '↑' : '↓'}{' '}
+                    {binanceChange24h.toFixed(2)}% (24h)
                   </p>
                 )}
               </div>
             </div>
-            {/* Pass coin name into candle stick chart.*/}
-            <CandleStickChart coin={coinName} />
+            {!showBeginnerTooltips && (
+              <div className="mb-3 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={chartMode === 'line' ? 'primary' : 'secondary'}
+                  className="!m-0"
+                  onClick={() => setChartMode('line')}
+                >
+                  Line
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={chartMode === 'candlestick' ? 'primary' : 'secondary'}
+                  className="!m-0"
+                  onClick={() => setChartMode('candlestick')}
+                >
+                  Candles
+                </Button>
+              </div>
+            )}
+            <TradingViewChart
+              coin={coinName}
+              mode={chartMode}
+              onMarketDataChange={handleMarketDataChange}
+            />
           
 
-          <div className="rounded-2xl   p-4 md:p-5  ">
+          <div className="rounded-2xl p-4 md:p-5">
             {metricsError && (
-              <p className="text-xs text-red-500 mb-2">
+              <p className="text-xs text-red-600 mb-2">
                 Metrics unavailable for this asset: {metricsError}
               </p>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs md:text-sm">
               <div>
-                <p className=" mb-1">Market cap</p>
+                <p className="mb-1">
+                  {showBeginnerTooltips ? (
+                    <Tooltip text="Price multiplied by circulating supply.">Market cap</Tooltip>
+                  ) : (
+                    'Market cap'
+                  )}
+                </p>
                 <p className="font-semibold ">
                   {metrics
                     ? `$${(metrics.marketCap / 10**9).toFixed(2)}B`
@@ -190,7 +312,13 @@ const pnlPercent =
                 </p>
               </div>
               <div>
-                <p className=" mb-1">24h volume</p>
+                <p className="mb-1">
+                  {showBeginnerTooltips ? (
+                    <Tooltip text="Total traded value over the last 24 hours.">24h volume</Tooltip>
+                  ) : (
+                    '24h volume'
+                  )}
+                </p>
                 <p className="font-semibold ">
                   {metrics
                     ? `$${(metrics.volume24h / 10**9).toFixed(2)}B`
@@ -198,7 +326,13 @@ const pnlPercent =
                 </p>
               </div>
               <div>
-                <p className=" mb-1">FDV</p>
+                <p className="mb-1">
+                  {showBeginnerTooltips ? (
+                    <Tooltip text="Value if max token supply were all in circulation.">FDV</Tooltip>
+                  ) : (
+                    'FDV'
+                  )}
+                </p>
                 <p className="font-semibold ">
                   {metrics?.fullyDilutedValuation
                     ? `$${(metrics.fullyDilutedValuation / 10**9).toFixed(2)}B`
@@ -206,7 +340,13 @@ const pnlPercent =
                 </p>
               </div>
               <div>
-                <p className=" mb-1">Circulating Supply</p>
+                <p className="mb-1">
+                  {showBeginnerTooltips ? (
+                    <Tooltip text="Tokens currently available on the market.">Circulating Supply</Tooltip>
+                  ) : (
+                    'Circulating Supply'
+                  )}
+                </p>
                 <p className="font-semibold ">
                   {metrics?.circulatingSupply
                     ? `$${(metrics.circulatingSupply / 10**9).toFixed(2)}B`
@@ -216,7 +356,7 @@ const pnlPercent =
             </div>
           </div>
           </div>
-          <div className="rounded-2xl  shadow-sm border border-gray-200 p-5 md:p-6  dark:border-gray-700">
+          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-5 md:p-6">
             <h2 className="text-lg font-semibold mb-3 ">
               News
             </h2>
@@ -224,12 +364,10 @@ const pnlPercent =
 
             {newsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/*Shows a grid on screen with 3 coloumns on medium displays and above*/}
-                {/* Iterates through a 3 indexed array and in each card displays "loading..." */}
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="border rounded-xl border-gray-200 h-48 flex items-center justify-center text-xs text-gray-500  animate-pulse"
+                    className="border rounded-xl border-[var(--border-color)] bg-[var(--muted-surface-color)] h-48 flex items-center justify-center text-xs text-[var(--muted-text-color)] animate-pulse"
                   >
                     Loading...
                   </div>
@@ -237,16 +375,13 @@ const pnlPercent =
               </div>
             ) : newsError ? (
               
-              <div className=" border rounded-xl  border-gray-200 p-4 text-sm text-gray-600 ">
-                {/*Here, the error will be in red text*/}
-                <p className="text-red-500 ">
+              <div className="border rounded-xl border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4 text-sm text-[var(--muted-text-color)]">
+                <p className="text-red-600 ">
                   Unable to load news: {newsError}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* As in the loading state, it will return a grid with 3 columns*/}
-                {/*The news will map over each of the 6 articles and pass the attributes of each article into the news card component*/}
                 {news.map((article) => (
                   <NewsCard
                     key={article.article_id}
@@ -265,13 +400,12 @@ const pnlPercent =
 
         </div>
 
-        {/* Right sidebar */}
         <div className="lg:col-span-1">
-          <div className="rounded-2xl  shadow-sm border    p-3   sticky top-24">
+          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-3 sticky top-24">
             <div className = "w-full flex items-center justify-center mb-4">
           <h3 className = "text-3xl ">Spot</h3>
           </div>
-          <div className = "w-full border"/>
+          <div className="w-full border border-[var(--border-color)]" />
             <div className="flex mb-4 rounded-lg overflow-hidden  ">
               <Button
                 variant = {`${side === 'buy' ? 'green' : 'secondary' }`}
@@ -306,11 +440,11 @@ const pnlPercent =
                 </label>
                 <select
                   value={selectedWalletID}
-                  onChange={(e) => setselectedWalletID(e.target.value )}
-                  className="w-full px-4 py-2 border  dark:border-gray-600 rounded-md bg-(background-color)"
+                  onChange={(e) => setSelectedWalletID(String(e.target.value))}
+                  className="w-full px-4 py-2 border border-[var(--border-color)] rounded-md bg-[var(--background-color)] text-[var(--text-color)]"
                 >
                   {wallets.map((wallet) => (
-                    <option key={wallet.walletid} value={wallet.walletid}>
+                    <option key={wallet.walletid} value={String(wallet.walletid)}>
                       {wallet.name} - ${wallet.usdt_balance?.toLocaleString()}
                     </option>
                   ))}
@@ -322,14 +456,14 @@ const pnlPercent =
                 <label className="block text-sm font-medium mb-2">
                   {side === 'buy' ? 'Buy' : 'Sell'} Amount
                 </label>
-                <div className="border  dark:border-gray-600 rounded-lg p-4 ">
+                <div className="border border-[var(--border-color)] rounded-lg p-4">
                   <div className="flex flex-row space-x-10 justify-between w-full">
                     <div className = "flex items-center   ">
                     <input
                       type="number"
                       step="any"
                       value={USD || ''}
-                      onChange={(e) => setUSD(parseFloat(e.target.value) || 0)}
+                      onChange={(e) => setUSDFromAmount(parseFloat(e.target.value) || 0)}
                       placeholder="0.0"
                       className="text-2xl font-medium bg-transparent focus:outline-none w-24"
                     />
@@ -339,13 +473,13 @@ const pnlPercent =
                     <input
                       type="number"
                       step="any"
-                      value={USD / (metrics ? metrics.price : 1)}
+                      value={currentPrice > 0 ? USD / currentPrice : 0}
                       onChange={(e) => {
-                        //Calculate USD based on price fetched from CoinGecko (parse float to convert string to float)
-                        setUSD(parseFloat(e.target.value) * metrics!.price || 0);
+                        const assetAmount = parseFloat(e.target.value) || 0;
+                        setUSDFromAmount(assetAmount * currentPrice);
                       }}
                       placeholder="0.00"
-                      className="text-lg text-gray-400 bg-transparent focus:outline-none w-24"
+                      className="text-lg text-[var(--muted-text-color)] bg-transparent focus:outline-none w-24"
                     />
                     <span className="text-sm font-medium ">
                         {baseTicker}
@@ -361,14 +495,58 @@ const pnlPercent =
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium">
+                    {side === 'buy' ? 'Wallet' : 'Position'} Percentage
+                  </label>
+                  <span className="text-xs text-[var(--muted-text-color)]">
+                    Available: ${MaxTradeUSD.toFixed(2)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[25, 50, 75, 100].map((preset) => (
+                    <Button
+                      key={preset}
+                      type="button"
+                      size="sm"
+                      variant={
+                        Number(percentage) === preset
+                          ? side === 'buy'
+                            ? 'green'
+                            : 'red'
+                          : 'secondary'
+                      }
+                      onClick={() => setUSDFromPercent(preset)}
+                      className="w-full"
+                    >
+                      {preset}%
+                    </Button>
+                  ))}
+                </div>
+                <div className=" rounded-lg p-3 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={percentage}
+                    onChange={(e) => setUSDFromPercent(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="text-lg font-medium bg-transparent focus:outline-none w-20"
+                  />
+                  <span className="text-sm">%</span>
+                </div>
+              </div>
+
               <div className="pt-2">
-                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <div className="flex justify-between text-xs text-[var(--muted-text-color)] mb-1">
                   <span>Slippage:</span>
                   <span className="font-medium">2%</span>
                 </div>
               </div>
 
-              {USD === 0 ? (
+              {isInvalidTradeAmount ? (
   <Button
     type="submit"
     variant={side === 'buy' ? 'green' : 'red'}
@@ -406,20 +584,20 @@ const pnlPercent =
 )}
 
             </form>
-        {position && position.availableqty > 0 && metrics && (
-  <div className="mt-6 rounded-xl border p-4 space-y-2 ">
+        {activePosition && activePosition.availableqty > 0 && (
+  <div className="mt-6 rounded-xl border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4 space-y-2">
     <h4 className="text-sm font-semibold">Position</h4>
 
     <div className="flex justify-between text-sm">
       <span>Quantity</span>
-      <span>
-        {position.availableqty.toFixed(6)} {baseTicker}
+        <span>
+        {activePosition.availableqty.toFixed(6)} {baseTicker}
       </span>
     </div>
 
     <div className="flex justify-between text-sm">
       <span>Avg Cost</span>
-      <span>${position.avgcost.toFixed(2)}</span>
+      <span>${activePosition.avgcost.toFixed(2)}</span>
     </div>
 
     <div className="flex justify-between text-sm">
@@ -432,11 +610,28 @@ const pnlPercent =
       <span>${positionValue.toFixed(2)}</span>
     </div>
 
+    {showWhatIfBox && (
+      <div className="rounded-lg border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-3">
+        <p className="text-xs font-semibold">What If</p>
+        <div className="mt-2 space-y-1 text-xs">
+          {whatIfScenarios.map((percent) => {
+            const projectedBalance = positionValue * (1 + percent / 100);
+            return (
+              <div key={percent} className="flex items-center justify-between">
+                <span>{percent > 0 ? `+${percent}%` : `${percent}%`}</span>
+                <span>${projectedBalance.toFixed(2)}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
     <div className="flex justify-between text-sm font-medium">
       <span>PnL</span>
       <span
         className={
-          unrealizedPnL >= 0 ? 'text-emerald-500' : 'text-red-500'
+          unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'
         }
       >
         {unrealizedPnL >= 0 ? '+' : ''}
@@ -448,26 +643,42 @@ const pnlPercent =
           </div>
         </div>
 
-        {message.message !== ''  && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center ">
-    
-   
-    <div className={`relative w-full max-w-sm rounded-xl  p-6 shadow-xl space-y-4 ${message.type === 'Error' ? 'bg-red-500 ' : 'bg-green-500 '}`}>
-      <h2 className="text-lg font-semibold ">{message.type === "Error" ? 'Error' : 'Success'}</h2>
-      <p>{message.message}</p>
-      <div className="flex justify-end gap-3">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => setMessage({message: '', type: ''})}
-        >
-          Close
-        </Button>
-      </div>
-    </div>
+        {messageText !== '' && (
+          <div className="trade-confirm-overlay fixed inset-0 z-50 grid place-items-center px-4">
+            <div
+              className={`trade-confirm-panel relative min-h-[10rem] ${
+                messageType === 'Error' ? 'ring-1 ring-red-300/70' : 'ring-1 ring-green-300/70'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+              
+                <div>
+                  <h2
+                    className={`text-lg font-semibold ${
+                      messageType === 'Error' ? 'text-red-600' : 'text-green-600'
+                    }`}
+                  >
+                    {messageType === 'Error' ? 'Order Not Completed' : 'Order Completed'}
+                  </h2>
+                </div>
+              </div>
 
-  </div>
-)}
+              <p className="trade-confirm-copy mt-4 text-sm">
+                {messageText}
+              </p>
+               <Button 
+                type="button"
+                onClick={clearMessage}
+                size = "sm"
+                variant = "secondary"
+                className="absolute bottom-3 right-3 rounded-full text-sm "
+              >
+                Close
+              </Button>
+          
+            </div>
+          </div>
+        )}
 
 
       </div>

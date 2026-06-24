@@ -30,8 +30,7 @@ import { Toggle } from "./DMLMToggle";
         type="button"
         variant="secondary"
         size="md"
-        //Created a template string that checked whether the pathname is equal to the link and changed the color of the text accordingly to blue.
-        className={` ${pathname === item.link ? "text-blue-500!" : ""} `}
+        className={` ${pathname === item.link ? 'text-gray-800' : ''} `}
       >
         {item.name}
       </Button>
@@ -48,6 +47,4 @@ import { Toggle } from "./DMLMToggle";
     );
   };
 export default Navbar
-
-
 

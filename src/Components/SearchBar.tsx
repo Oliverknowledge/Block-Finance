@@ -9,7 +9,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ Search }) => {
   const [query, setQuery] = useState("");
  
   const handleClick = () => {
-    if (!query.trim()) return;
     Search(query.trim());
   };
 
@@ -19,7 +18,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ Search }) => {
     <form
       className="max-w-md mx-auto"
       onSubmit={(e) => {
-        e.preventDefault(); // prevents page reload
+        e.preventDefault();
         handleClick();
       }}
     >
@@ -48,7 +47,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ Search }) => {
           onChange={(e) => setQuery(e.target.value)}
           className="block w-full p-3 ps-9 bg-neutral-secondary-medium  text-heading text-sm rounded-base  shadow-xs placeholder:text-body"
           placeholder="Search"
-          required
         />
 
         <Button

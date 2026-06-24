@@ -1,139 +1,156 @@
-  import {
-    createChart,
-    ColorType,
-    CandlestickSeries,
-    type CandlestickData,
-    type UTCTimestamp,
-    type IChartApi,
-    type ISeriesApi,
-  } from "lightweight-charts";
-  import { useEffect, useRef, useState } from "react";
-  import { fetchCandleData } from "../utils/FetchCandleData";
-  import { useTheme } from "../hooks/useTheme";
-  interface CandleStickChartProps{
-    coin: string
-  }
-  export const CandleStickChart:React.FC<CandleStickChartProps> = ({coin}) => {
-      
-    const { isDark } = useTheme();
-    const chartContainerRef = useRef<HTMLDivElement | null>(null);
-    const chartRef = useRef<IChartApi | null>(null);
-    const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-    const oldestTimeRef = useRef<UTCTimestamp | null>(null);
-    const isLoadingRef = useRef(false);
-    
-    const [data, setData] = useState<CandlestickData<UTCTimestamp>[]>([]);
-    
+import {
+  createChart,
+  ColorType,
+  CandlestickSeries,
+  LineSeries,
+  type CandlestickData,
+  type IChartApi,
+  type ISeriesApi,
+  type UTCTimestamp,
+} from 'lightweight-charts';
+import { useEffect, useRef, useState } from 'react';
+import { fetchCandleData } from '../utils/FetchCandleData';
+import { useTheme } from '../hooks/useTheme';
 
-    useEffect(() => {
-      if (!chartContainerRef.current) return;
-      
-      const chart = createChart(chartContainerRef.current, {
-        layout: { 
-          background: { type: ColorType.Solid, color: isDark ? "black" : "white" }, 
-          textColor: isDark ? "#d1d4dc" : "#191919" 
-        },
-        grid: {
-          vertLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
-          horzLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
-        },
-        width: chartContainerRef.current.clientWidth,
-        height: 400,
-      });
-      chartRef.current = chart;
+type ChartMode = 'line' | 'candlestick';
 
-      const series = chart.addSeries(CandlestickSeries, {
-        upColor: "#26a69a",
-        downColor: "#ef5350",
-        wickUpColor: "#26a69a",
-        wickDownColor: "#ef5350",
+interface TradingViewChartProps {
+  coin: string;
+  mode?: ChartMode;
+  onMarketDataChange?: (marketData: {
+    lastPrice: number | null;
+    change24h: number | null;
+  }) => void;
+}
+
+const TradingViewChart = ({
+  coin,
+  mode = 'candlestick',
+  onMarketDataChange,
+}: TradingViewChartProps) => {
+  const { isDark } = useTheme();
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<IChartApi | null>(null);
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const lineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const [candles, setCandles] = useState<CandlestickData<UTCTimestamp>[]>([]);
+
+  useEffect(() => {
+    if (!chartContainerRef.current) {
+      return;
+    }
+
+    const chart = createChart(chartContainerRef.current, {
+      layout: {
+        background: { type: ColorType.Solid, color: isDark ? '#000000' : '#ffffff' },
+        textColor: isDark ? '#e5e7eb' : '#1f1f1f',
+      },
+      grid: {
+        vertLines: { color: isDark ? '#34343a' : '#e5e7eb' },
+        horzLines: { color: isDark ? '#34343a' : '#e5e7eb' },
+      },
+      width: chartContainerRef.current.clientWidth,
+      height: 400,
+    });
+
+    if (mode === 'candlestick') {
+      candleSeriesRef.current = chart.addSeries(CandlestickSeries, {
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
         borderVisible: false,
       });
-      seriesRef.current = series;
-
-      const handleResize = () => {
-        if (chartContainerRef.current) chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-      };
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        window.removeEventListener("resize", handleResize);
-        chart.remove();
-      };
-    }, []); 
-
-    
-    useEffect(() => {
-      if (!chartRef.current) return;
-      
-      chartRef.current.applyOptions({
-        layout: { 
-          background: { type: ColorType.Solid, color: isDark ? "black" : "white" }, 
-          textColor: isDark ? "#d1d4dc" : "#191919" 
-        },
-        grid: {
-          vertLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
-          horzLines: { color: isDark ? "#2B2B43" : "#e1e3eb" },
-        },
+      lineSeriesRef.current = null;
+    } else {
+      lineSeriesRef.current = chart.addSeries(LineSeries, {
+        color: '#2962FF',
+        lineWidth: 2,
       });
-    }, [isDark]);
+      candleSeriesRef.current = null;
+    }
 
-    useEffect(() => {
-      fetchCandleData(coin).then(candles => {
-        setData(candles);
-        oldestTimeRef.current = candles[0].time;
-        seriesRef.current?.setData(candles);
+    chartRef.current = chart;
 
-        if (chartRef.current) {
-          const chart: IChartApi = chartRef.current;
-          chart.timeScale().fitContent();
-        }
-      });
-    }, [coin]);
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      }
+    };
 
-    useEffect(() => {
-      const interval = setInterval(async () => {
-        if (!data.length) return;
+    window.addEventListener('resize', handleResize);
 
-        const latestTime = data[data.length - 1].time;
-        const newCandles = await fetchCandleData(coin, "1h", 10);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chart.remove();
+      chartRef.current = null;
+      candleSeriesRef.current = null;
+      lineSeriesRef.current = null;
+    };
+  }, [isDark, mode]);
 
-        newCandles.forEach(c => {
-          if (c.time > latestTime) {
-            seriesRef.current?.update(c);
-            setData(prev => [...prev, c]);
-          }
-        });
-      }, 10_000);
+  useEffect(() => {
+    let mounted = true;
 
-      return () => clearInterval(interval);
-    }, [data, isDark, coin]);
+    const loadCandles = async () => {
+      setCandles([]);
+      const nextCandles = await fetchCandleData(coin);
+      if (mounted) {
+        setCandles(nextCandles);
+      }
+    };
 
-    useEffect(() => {
-      if (!chartRef.current) return;
-      const chart = chartRef.current;
-      let isMounted = true;
+    void loadCandles();
 
-      chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-        if (!range || oldestTimeRef.current === null || isLoadingRef.current) return;
+    return () => {
+      mounted = false;
+    };
+  }, [coin]);
 
-        if (range.from <= oldestTimeRef.current + 1) {
-          isLoadingRef.current = true;
-          fetchCandleData("BTCUSDT", "1h", 500, oldestTimeRef.current * 1000).then(oldCandles => {
-            if (!isMounted) return;
-            
-            oldCandles.reverse().forEach(c => seriesRef.current?.update(c));
-            if (oldCandles.length) oldestTimeRef.current = oldCandles[0].time;
-            setData(prev => [...oldCandles, ...prev]);
-            isLoadingRef.current = false;
-          });
-        }
-      });
+  useEffect(() => {
+    if (candles.length === 0) {
+      return;
+    }
 
-      return () => {
-        isMounted = false;
-      };
-    }, []);
+    if (mode === 'candlestick' && candleSeriesRef.current) {
+      candleSeriesRef.current.setData(candles);
+      chartRef.current?.timeScale().fitContent();
+      return;
+    }
 
-    return <div ref={chartContainerRef} style={{ width: "100%", height: "400px" }} />;
-  }
+    if (mode === 'line' && lineSeriesRef.current) {
+      const lineData = candles.map((candle) => ({
+        time: candle.time,
+        value: candle.close,
+      }));
+      lineSeriesRef.current.setData(lineData);
+      chartRef.current?.timeScale().fitContent();
+    }
+  }, [candles, mode]);
+
+  const latestChartPrice = candles.length > 0 ? candles[candles.length - 1].close : null;
+  const price24hAgo = candles.length > 24 ? candles[candles.length - 25].close : null;
+  const chartChange24h =
+    latestChartPrice !== null &&
+    price24hAgo !== null &&
+    Number.isFinite(price24hAgo) &&
+    price24hAgo > 0
+      ? ((latestChartPrice - price24hAgo) / price24hAgo) * 100
+      : null;
+
+  useEffect(() => {
+    if (!onMarketDataChange) {
+      return;
+    }
+
+    onMarketDataChange({
+      lastPrice: latestChartPrice,
+      change24h: chartChange24h,
+    });
+  }, [chartChange24h, latestChartPrice, onMarketDataChange]);
+
+  return <div ref={chartContainerRef} style={{ width: '100%', height: '400px' }} />;
+};
+
+export type { ChartMode };
+export { TradingViewChart };

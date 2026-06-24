@@ -5,7 +5,7 @@ const supabase = createClient(
   import.meta.env.VITE_SUPABASE_ANON_KEY!
 );
 
-export default async function UpdateSkillLevel(user: User | null, skillLevel: string): Promise<boolean> {
+export default async function updateSkillLevel(user: User | null, skillLevel: string): Promise<boolean> {
   if (!user) return false;
 
     // Update the user's onboarded status to true

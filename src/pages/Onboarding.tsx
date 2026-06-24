@@ -3,8 +3,8 @@ import { AlertTriangle, Shield, TrendingUp, Brain } from 'lucide-react'
 import Button from '../Components/Button'
 import Tooltip from '../Components/Tooltip'
 import {  useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import UpdateSkillLevel from '../utils/UpdateSkillLevel'
+import { useAuth } from '../hooks/useAuth'
+import updateSkillLevel from '../utils/UpdateSkillLevel'
 import onboardCheck from '../utils/onboardcheck'
 
 const Onboarding = () => {
@@ -12,9 +12,7 @@ const Onboarding = () => {
     const { user } = useAuth();
     const [onboarded, setOnboarded] = useState(false);
   useEffect(() => {
-    // Check if user exists before calling onboardCheck
     if (!user) return;
-    // Call the onboardCheck function and update the onboarded state  
     onboardCheck(user).then(setOnboarded);
   
   }
@@ -22,11 +20,8 @@ const Onboarding = () => {
 if (onboarded) {
     navigate('/Dashboard');
     }
-    //User initially starts at the first sec    tion, then increments as they proceed
   const [currentSection, setCurrentSection] = useState(0)
-  // User's selected skill level at the end of the form (passed into database after onboarding is complete)
   const [skillLevel, setSkillLevel] = useState('')
-  // Track which acknowledgments the user has checked
   const [acknowledged, setAcknowledged] = useState({
     risks: false,
     scams: false
@@ -40,7 +35,7 @@ if (onboarded) {
       content: (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold ">Security & Financial Risks</h3>
-          <div className="space-y-3 text-gray-800">
+          <div className="space-y-3">
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
                 
               <h4 className="font-semibold mb-2 flex items-center gap-2">
@@ -51,9 +46,11 @@ if (onboarded) {
             </div>
             
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 ">
-                <Tooltip text = "Staking lock-up periods are when you agree to keep your digital money in a special online pot for a set amount of time." position = "top">
-                <h4 className="font-semibold ">Staking Lock-Up Periods</h4>
-                </Tooltip>
+                <h4 className="font-semibold ">
+                  <Tooltip text = "Staking lock-up periods are when you agree to keep your digital money in a special online pot for a set amount of time." position = "top">
+                    Staking Lock-Up Periods
+                  </Tooltip>
+                </h4>
 
               <p className="text-sm mt-3">When staking, your funds may be locked for days, weeks, or months. You cannot access or sell them during this period, even if prices drop.</p>
             </div>
@@ -92,7 +89,7 @@ if (onboarded) {
       content: (
         <div className="space-y-4">
         <h3 className="text-xl font-semibold ">How Scams Work & How to Stay Safe</h3>
-        <div className="space-y-3 text-gray-700">
+        <div className="space-y-3">
           <div className="bg-red-50 p-4 rounded-lg border border-red-200">
             <h4 className="font-semibold mb-2 text-red-800">Common Scam Types</h4>
             <ul className="text-sm space-y-1">
@@ -201,13 +198,10 @@ if (onboarded) {
     if (currentSection < sections.length - 1) {
       setCurrentSection(currentSection + 1)
     } else {
-      // Onboarding complete (will insert function to handle updating the database)
-      UpdateSkillLevel(user, skillLevel).then((success) => {
+      updateSkillLevel(user, skillLevel).then((success) => {
         if (success) {
-          // Redirect to dashboard after successful onboarding
           navigate('/Dashboard')
         } else {
-          // Handle error (e.g., show a notification)
           console.log('Error updating onboarding status')
         }
       })
@@ -217,22 +211,20 @@ if (onboarded) {
   return (
     <div className="min-h-screen  py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        <div className="rounded-2xl  p-8">
+        <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-8">
           <div className="flex items-center justify-between mb-8">
             {sections.map((_, index) => (
               <React.Fragment key={index}>
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full font-semibold ${
-                //If index is less than or equal to currentSection, apply completed styles
                   index <= currentSection 
                     ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-[var(--muted-surface-color)] text-[var(--muted-text-color)]'
                 }`}>
                   {index + 1}
                 </div>
-                {/* Two bars that show progress, index < sections.length -1 so that it doesn't show another bar for the last item*/}
                 {index < sections.length - 1 && (
                   <div className={`flex-1 h-1 mx-3 ${
-                    index < currentSection ? 'bg-[#1a1a1a]' : 'bg-gray-200'
+                    index < currentSection ? 'bg-[var(--button-bg)]' : 'bg-[var(--muted-surface-color)]'
                   }`} />
                 )}
               </React.Fragment>
@@ -247,7 +239,6 @@ if (onboarded) {
         <div className = "mt-10">
             {sections[currentSection].content}   
         </div>
-         {/* Section buttons*/}
          <div className="flex justify-between items-center pt-6 ">
             <Button
                 type = "button"

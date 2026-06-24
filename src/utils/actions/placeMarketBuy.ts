@@ -1,5 +1,5 @@
-import { createClient, type User } from '@supabase/supabase-js'
-import GenerateId from '../GenerateId';
+import { createClient } from '@supabase/supabase-js'
+import generateId from '../GenerateId';
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!
@@ -7,7 +7,6 @@ const supabase = createClient(
 
 
 export default async function placeMarketBuy(
-    user: User,
     walletid: string,
     ticker: string,
     USD: number,
@@ -49,12 +48,22 @@ export default async function placeMarketBuy(
     USD -= fee;
     // No slippage for now
     const slippage = 0;
-    if (!user) return false;
-    const id = GenerateId();
+    const id = generateId();
    const  { error } = await supabase
         .from('tbltrades')
         .insert([
-          { tradeid: id, walletid: walletid, ticker: ticker, usdvalue: USD, quantity: quantityToBuy, side: 'BUY', price: price, fee: fee, slippage: slippage },
+          {
+            tradeid: id,
+            walletid: walletid,
+            ticker: ticker,
+            usdvalue: USD,
+            quantity: quantityToBuy,
+            side: 'BUY',
+            price: price,
+            fee: fee,
+            slippage: slippage,
+            createdate: new Date().toISOString(),
+          },
         ]); 
         if (error) {
           console.error('Error placing market buy:', error);

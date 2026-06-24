@@ -1,5 +1,5 @@
 import { createClient, type User } from '@supabase/supabase-js'
-import { type wallet } from '../types/wallet.js';
+import { type wallet } from '../types/Wallet';
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL!,
   import.meta.env.VITE_SUPABASE_ANON_KEY!

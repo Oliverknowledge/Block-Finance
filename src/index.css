@@ -1,50 +1,141 @@
+@import "tailwindcss";
+
 :root {
-  /* Finance-friendly font stack */
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     Roboto, Helvetica, Arial, sans-serif;
-
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light;
-  color: #0f172a; 
-  background-color: #f3f4f6; 
+
+  --background-color: #f4f4f5;
+  --surface-color: #ffffff;
+  --muted-surface-color: #eeece8;
+  --border-color: #d6d3d1;
+  --primary-text-color: #1c1917;
+  --text-color: #1c1917;
+  --muted-text-color: #57534e;
+  --button-bg: #262626;
+  --button-color: #fafafa;
+  --button-hover-bg: #171717;
+  --link-color: #2563eb;
+  --link-hover-color: #1d4ed8;
+  --overlay-color: rgba(10, 10, 10, 0.52);
+  --shadow-color: rgba(0, 0, 0, 0.22);
+  --ring-color: rgba(37, 99, 235, 0.28);
+  --stake-status-healthy: #15803d;
+  --stake-status-busy: #ca8a04;
+  --stake-status-congested: #c2410c;
+  --stake-status-degraded: #dc2626;
+  --stake-status-incident: #b91c1c;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --background-color: #f3f4f6; 
-  --surface-color: #ffffff; 
-  --muted-surface-color: #e5e7eb; 
-  --primary-text-color: #0f172a;
-  --text-color: #000000;
-  --muted-text-color: #6b7280;
-  --button-bg: #111827;
-  --button-color: #f9fafb;
-  --button-hover-bg: #020617;
-  --link-color: #1d4ed8; 
-  --link-hover-color: #1e40af; 
 }
 
-.div{
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --background-color: #111111;
+  --surface-color: #1a1a1a;
+  --muted-surface-color: #252525;
+  --border-color: #3f3f46;
+  --primary-text-color: #f4f4f5;
+  --text-color: #f4f4f5;
+  --muted-text-color: #a1a1aa;
+  --button-bg: #313131;
+  --button-color: #f4f4f5;
+  --button-hover-bg: #3c3c3c;
+  --link-color: #93c5fd;
+  --link-hover-color: #bfdbfe;
+  --overlay-color: rgba(0, 0, 0, 0.68);
+  --shadow-color: rgba(0, 0, 0, 0.45);
+  --ring-color: rgba(147, 197, 253, 0.32);
+  --stake-status-healthy: #34d399;
+  --stake-status-busy: #fbbf24;
+  --stake-status-congested: #fb923c;
+  --stake-status-degraded: #f87171;
+  --stake-status-incident: #ef4444;
+}
+
+/* Shared utility classes used by existing components */
+.bg-neutral-primary {
+  background-color: var(--surface-color);
+}
+
+.bg-neutral-secondary-soft,
+.bg-neutral-secondary-medium {
+  background-color: var(--muted-surface-color);
+}
+
+.text-heading,
+.text-primary {
+  color: var(--primary-text-color);
+}
+
+.text-body,
+.text-muted {
+  color: var(--muted-text-color);
+}
+
+.bg-surface,
+.bg-card {
+  background-color: var(--surface-color);
+}
+
+.border-divider {
+  border-color: var(--border-color);
+}
+
+.bg-tooltip {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+}
+
+.text-tooltip-text {
+  color: var(--text-color);
+}
+
+.text-success {
+  color: #16a34a;
+}
+
+.text-danger {
+  color: #dc2626;
+}
+
+.rounded-base {
+  border-radius: 0.5rem;
+}
+
+.focus\:ring-neutral-tertiary:focus,
+.focus\:ring-brand-medium:focus {
+  box-shadow: 0 0 0 3px var(--ring-color);
+}
+
+.div {
   background-color: var(--background-color);
 }
-.select{
+
+.select {
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   background-color: var(--surface-color);
   color: var(--text-color);
   font-family: inherit;
   font-size: 1em;
 }
+
 a {
   font-weight: 500;
   color: inherit;
   text-decoration: none;
 }
 
+a:hover {
+  color: var(--link-hover-color);
+}
 
 body {
   margin: 0;
@@ -52,18 +143,18 @@ body {
   min-height: 100vh;
   background-color: var(--background-color);
   color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-  color: var(--primary-text-color)
+  color: var(--primary-text-color);
 }
 
 button {
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
@@ -71,30 +162,20 @@ button {
   background-color: var(--button-bg);
   color: var(--button-color);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
 }
 
-
-
-@media (prefers-color-scheme: light) {
-  :root {
-    
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-button:disabled{
+button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 /* Main button "base class" */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
   font-family: inherit;
   font-weight: 500;
   text-align: center;
@@ -107,20 +188,20 @@ button:disabled{
 }
 
 .btn-primary {
-  background-color: #1d4ed8; 
+  background-color: #2563eb;
   color: #f9fafb;
 }
 .btn-primary:not(:disabled):hover {
-  background-color: #1e40af;
+  background-color: #1d4ed8;
 }
 
 .btn-secondary {
   background-color: var(--surface-color);
   color: var(--text-color);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
 }
 .btn-secondary:not(:disabled):hover {
-  background-color: #e5e7eb;
+  background-color: var(--muted-surface-color);
 }
 
 .btn-green {
@@ -157,42 +238,78 @@ button:disabled{
   line-height: 1.75rem;
 }
 
-html[data-theme="dark"] {
-  color-scheme: dark;
-  --background-color: #0a0a0a;
-  --primary-text-color: #f6f6f6;
-  --text-color: #f6f6f6;
-  --button-bg: #1a1a1a;
-  --button-color: #f6f6f6;
-  --button-hover-bg: #2a2a2a;
-  --link-color: #64b5f6;
-  --link-hover-color: #90caf9;
+.trade-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--overlay-color);
+  backdrop-filter: blur(2px);
 }
 
-html[data-theme="dark"] body {
-  background-color: var(--background-color);
+.trade-confirm-panel {
+  width: 100%;
+  max-width: 28rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-color);
+  padding: 1.5rem;
+  box-shadow: 0 24px 64px var(--shadow-color);
+}
+
+.trade-confirm-copy {
+  color: var(--muted-text-color);
+}
+
+.trade-confirm-summary {
+  border: 1px solid var(--border-color);
+  background: var(--muted-surface-color);
+}
+
+.stake-modal-overlay {
+  background: var(--overlay-color);
+  backdrop-filter: blur(6px);
+}
+
+.stake-modal-panel {
+  border-color: var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-color);
+  box-shadow: 0 24px 64px var(--shadow-color);
+}
+
+.stake-modal-subpanel {
+  border-color: var(--border-color);
+  background: var(--background-color);
   color: var(--text-color);
 }
 
-html[data-theme="dark"] button {
-  background-color: var(--button-bg);
-  color: var(--button-color);
-  border-color: #444;
+.stake-status-healthy {
+  color: var(--stake-status-healthy);
 }
 
-
-
-html[data-theme="dark"] .btn-secondary {
-  background-color: #1a1a1a;
-  color: #f6f6f6;
-  border-color: #444;
+.stake-status-busy {
+  color: var(--stake-status-busy);
 }
 
-html[data-theme="dark"] .btn-secondary:hover {
-  background-color: #2a2a2a;
+.stake-status-congested {
+  color: var(--stake-status-congested);
 }
+
+.stake-status-degraded {
+  color: var(--stake-status-degraded);
+}
+
+.stake-status-incident {
+  color: var(--stake-status-incident);
+}
+
 html[data-theme="dark"] .btn-green {
-  background-color: #16a34a; 
+  background-color: #16a34a;
   color: #f9fafb;
 }
 
@@ -201,20 +318,28 @@ html[data-theme="dark"] .btn-green:not(:disabled):hover {
 }
 
 html[data-theme="dark"] .btn-red {
-  background-color: #dc2626; 
+  background-color: #dc2626;
   color: #f9fafb;
 }
 html[data-theme="dark"] .btn-red:not(:disabled):hover {
-  background-color: #b91c1c; 
+  background-color: #b91c1c;
 }
 
-html[data-theme="dark"]   button:disabled{
+html[data-theme="dark"] button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-html[data-theme="dark"]   select {
-  background-color: #1a1a1a;
-  color: #f6f6f6;
-  border-color: #444;
+html[data-theme="dark"] select {
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+html[data-theme="dark"] .trade-confirm-overlay {
+  background: var(--overlay-color);
+}
+
+html[data-theme="dark"] .trade-confirm-panel {
+  box-shadow: 0 24px 64px var(--shadow-color);
 }
