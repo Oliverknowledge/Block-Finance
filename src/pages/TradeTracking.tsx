@@ -17,7 +17,6 @@ const TradeTracking = ({ walletId }: { walletId: string | number }) => {
   // Get unique tickers from trades for price fetching
   const uniqueTickers = Array.from(new Set(trades.map((t) => t.ticker)));
   const currentPrices = useCurrentPrices(uniqueTickers);
-  const isLoadingPrices = Object.keys(currentPrices).length < uniqueTickers.length;
   
   useEffect(() => {
     const loadTrades = async () => {
