@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 
 const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
+  import.meta.env.VITE_SUPABASE_URL! || null,
+  import.meta.env.VITE_SUPABASE_ANON_KEY! || null
 );
 
 export default async function sellStake(
@@ -22,7 +22,7 @@ export default async function sellStake(
   }
 
   const walletId = stakeRow.walletid;
-  const stakeAmount = stakeRow.quantity ;
+  const stakeAmount = stakeRow.quantity;
 
   const { data: walletRow, error: walletError } = await supabase
     .from('tblwalletassets')
@@ -30,7 +30,7 @@ export default async function sellStake(
     .eq('walletid', walletId)
     .eq('ticker', 'USDT')
     .single();
-
+  
   if (walletError || !walletRow) {
     return { ok: false, error: 'Unable to fetch wallet balances.' };
   }

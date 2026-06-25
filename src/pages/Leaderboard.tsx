@@ -26,9 +26,18 @@ const scoreLabel = (metric: Metric, timeframe: Timeframe) => {
 const portfolioWalletName = (row: LeaderboardRow, timeframe: Timeframe) =>
   timeframe === '7d' ? row.portfolio7dWalletName : row.portfolioAllTimeWalletName;
 
+const formatLeaderboardScore = (score: number, metric: Metric) => {
+  if (metric === 'xp') {
+    return Math.round(score).toLocaleString();
+  }
+
+  const formattedValue = `$${formatCurrency(Math.abs(score))}`;
+  return score >= 0 ? `+${formattedValue}` : `-${formattedValue}`;
+};
+
 const Leaderboard = () => {
   const { user } = useAuth();
-  
+
   const [metric, setMetric] = useState<Metric>('PnL');
   const [timeframe, setTimeframe] = useState<Timeframe>('all-time');
   const [users, setUsers] = useState<LeaderboardUser[]>([]);
@@ -53,24 +62,37 @@ const Leaderboard = () => {
   }, []);
 
   const rows = buildLeaderboardRows(users, metric, timeframe);
-  const myRow = user ? rows.find((row) => row.userId === user.id) ?? null : null;
   const topRows = rows.slice(0, 10);
+  const top3 = rows.slice(0, 3);
+  const myRow = user ? rows.find((row) => row.userId === user.id) ?? null : null;
   const topPerformer = rows[0] ?? null;
+  const totalPlayers = rows.length;
+  const averageScore = totalPlayers
+    ? rows.reduce((sum, row) => sum + row.score, 0) / totalPlayers
+    : 0;
 
   return (
     <div className="px-6 md:px-10 pb-10">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-semibold">Leaderboard</h1>
-          <p className="text-sm md:text-base max-w-2xl">
-            Compare users by XP and portfolio performance across 7D and all-time rankings.
-          </p>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <header className="space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brand-color)] shadow-soft">
+            Leaderboard
+          </div>
+          <div className="space-y-2">
+            <h1 className="page-title">Market Leaderboard</h1>
+            <p className="text-body max-w-3xl text-sm md:text-base">
+              Track the most active crypto traders and portfolio builders in real time. Filter by XP or portfolio performance, then compare 7-day and all-time rankings.
+            </p>
+          </div>
         </header>
 
-        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4 md:p-5 space-y-4">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-2">
-              <p className="text-xs uppercase ">Main Filter</p>
+        <section className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
+          <div className="leaderboard-card p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Leaderboard filters</p>
+                <h2 className="mt-2 text-2xl font-semibold">View the latest rankings</h2>
+              </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -90,12 +112,6 @@ const Leaderboard = () => {
                 >
                   Portfolio
                 </Button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs uppercase ">Timeframe</p>
-              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   size="sm"
@@ -117,98 +133,109 @@ const Leaderboard = () => {
               </div>
             </div>
 
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Top score</p>
+                <p className="mt-2 text-2xl font-semibold">{topPerformer ? formatLeaderboardScore(topPerformer.score, metric) : '—'}</p>
+                <p className="mt-1 text-sm text-[var(--muted-text-color)]">Best performer this view</p>
+              </div>
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Players</p>
+                <p className="mt-2 text-2xl font-semibold">{totalPlayers}</p>
+                <p className="mt-1 text-sm text-[var(--muted-text-color)]">Active leaderboard accounts</p>
+              </div>
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Average score</p>
+                <p className="mt-2 text-2xl font-semibold">{formatLeaderboardScore(averageScore, metric)}</p>
+                <p className="mt-1 text-sm text-[var(--muted-text-color)]">Mean score for this leaderboard</p>
+              </div>
+            </div>
           </div>
 
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
-            <p className="text-xs uppercase ">Your Position</p>
+          <div className="leaderboard-card p-5">
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Your standing</p>
             {myRow ? (
-              <>
-                <p className="mt-2 text-2xl font-semibold">#{myRow.rank}</p>
-                <p className="mt-1 text-sm">{scoreLabel(metric, timeframe)}</p>
-                <p className="text-lg font-medium mt-1">
-                  {metric === 'xp' ? (
-                    <span>{Math.round(myRow.score).toLocaleString()}</span>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center gap-1 ${
-                        myRow.score >= 0
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }`}
-                    >
-                      <span>{myRow.score >= 0 ? '↑' : '↓'}</span>
-                      <span>{`${myRow.score >= 0 ? '+' : '-'}$${formatCurrency(Math.abs(myRow.score))}`}</span>
-                    </span>
+              <div className="mt-4 space-y-4">
+                <div className="rounded-[2rem] bg-[var(--brand-soft)] p-4 shadow-soft">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--brand-color)]">Rank</p>
+                  <p className="mt-2 text-4xl font-semibold">#{myRow.rank}</p>
+                  <p className="mt-1 text-sm text-[var(--muted-text-color)]">{myRow.username}</p>
+                </div>
+                <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-text-color)]">Current score</p>
+                  <p className="mt-2 text-3xl font-semibold">{formatLeaderboardScore(myRow.score, metric)}</p>
+                  {metric === 'PnL' && (
+                    <p className="mt-1 text-sm text-[var(--muted-text-color)]">Wallet: {portfolioWalletName(myRow, timeframe) || 'No wallet created'}</p>
                   )}
-                </p>
-                {metric === 'PnL' && portfolioWalletName(myRow, timeframe) !== '' && (
-                  <p className="text-xs mt-1">
-                    Best wallet: {portfolioWalletName(myRow, timeframe)}
-                  </p>
-                )}
-              </>
+                </div>
+              </div>
             ) : (
-              <p className="mt-2 text-sm">Sign in and start trading to appear in the leaderboard.</p>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4">
-            <p className="text-xs uppercase ">Top Performer</p>
-            {topPerformer ? (
-              <>
-                <p className="mt-2 text-xl font-semibold">{topPerformer.username}</p>
-                <p className="mt-1 text-sm">{scoreLabel(metric, timeframe)}</p>
-                <p className="text-lg font-medium mt-1">
-                  {metric === 'xp' ? (
-                    <span>{Math.round(topPerformer.score).toLocaleString()}</span>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center gap-1 ${
-                        topPerformer.score >= 0
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }`}
-                    >
-                      <span>{topPerformer.score >= 0 ? '↑' : '↓'}</span>
-                      <span>{`${topPerformer.score >= 0 ? '+' : '-'}$${formatCurrency(Math.abs(topPerformer.score))}`}</span>
-                    </span>
-                  )}
-                </p>
-                {metric === 'PnL' && portfolioWalletName(topPerformer, timeframe) !== '' && (
-                  <p className="text-xs mt-1">
-                    Wallet: {portfolioWalletName(topPerformer, timeframe)}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="mt-2 text-sm">No users found yet.</p>
+              <p className="mt-4 text-sm text-[var(--muted-text-color)]">Sign in and start trading to appear in the leaderboard and unlock your full profile view.</p>
             )}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-4 md:p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Top Performers</h2>
-            <p className="text-xs">{scoreLabel(metric, timeframe)}</p>
+        <section className="leaderboard-card p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Top 3 Podium</h2>
+              <p className="text-sm text-[var(--muted-text-color)]">The strongest traders for this filter.</p>
+            </div>
+            <div className="hidden md:block text-sm text-[var(--muted-text-color)]">Swipe horizontally on mobile to see the whole board.</div>
+          </div>
+
+          <div className="mt-5 flex gap-3 overflow-x-auto pb-1">
+            {top3.length === 0 ? (
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] p-5 text-center text-sm text-[var(--muted-text-color)] w-full">
+                No leaderboard entries yet.
+              </div>
+            ) : (
+              top3.map((row, index) => (
+                <div key={row.userId} className="min-w-[12rem] flex-1 rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] p-5 shadow-soft">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-text-color)]">#{row.rank}</p>
+                      <p className="mt-2 text-xl font-semibold leading-tight">{row.username}</p>
+                    </div>
+                    <div className="rounded-full bg-[var(--brand-soft)] px-3 py-1 text-xs font-semibold text-[var(--brand-color)]">Top {index + 1}</div>
+                  </div>
+                  <div className="mt-4 rounded-3xl bg-[var(--muted-surface-color)] p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-[var(--muted-text-color)]">Score</p>
+                    <p className="mt-2 text-2xl font-semibold">{formatLeaderboardScore(row.score, metric)}</p>
+                  </div>
+                  {metric === 'PnL' && (
+                    <p className="mt-4 text-sm text-[var(--muted-text-color)]">Wallet: {portfolioWalletName(row, timeframe) || 'No wallet'}</p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="leaderboard-card p-5">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4">
+            <div>
+              <h2 className="text-xl font-semibold">Leaderboard table</h2>
+              <p className="text-sm text-[var(--muted-text-color)]">The top 10 ranked players for your chosen view.</p>
+            </div>
+            <div className="text-xs uppercase tracking-[0.22em] text-[var(--muted-text-color)]">{scoreLabel(metric, timeframe)}</div>
           </div>
 
           {loading ? (
-            <p className="text-sm">Loading leaderboard...</p>
+            <div className="mt-6 rounded-3xl bg-[var(--muted-surface-color)] p-6 text-sm text-[var(--muted-text-color)]">Loading leaderboard...</div>
           ) : errorMessage !== '' ? (
-            <p className="text-sm text-red-600">{errorMessage}</p>
+            <div className="mt-6 rounded-3xl bg-[var(--surface-color)] p-6 text-sm text-red-600">{errorMessage}</div>
           ) : topRows.length === 0 ? (
-            <p className="text-sm">No leaderboard data yet.</p>
+            <div className="mt-6 rounded-3xl bg-[var(--muted-surface-color)] p-6 text-sm text-[var(--muted-text-color)]">No leaderboard data yet.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+            <div className="mt-6 overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase ">
-                    <th className="py-2 pr-3">Rank</th>
-                    <th className="py-2 pr-3">User</th>
-                    <th className="py-2 text-right">{scoreLabel(metric, timeframe)}</th>
+                  <tr className="text-xs uppercase tracking-[0.16em] text-[var(--muted-text-color)]">
+                    <th className="py-3 pr-4">Rank</th>
+                    <th className="py-3 pr-4">Player</th>
+                    <th className="py-3 pr-4">Details</th>
+                    <th className="py-3 text-right">Score</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -217,38 +244,27 @@ const Leaderboard = () => {
                     return (
                       <tr
                         key={row.userId}
-                        className={`border-t border-[var(--border-color)] ${
-                          isCurrentUser ? 'bg-gray-200/60' : ''
-                        }`}
+                        className={`border-t border-[var(--border-color)] ${isCurrentUser ? 'bg-[var(--brand-soft)]' : ''}`}
                       >
-                        <td className="py-3 pr-3 font-medium">#{row.rank}</td>
-                        <td className="py-3 pr-3">
-                          <p className={`font-medium ${isCurrentUser ? 'text-gray-800' : ''}`}>
-                            {row.username}
-                            {isCurrentUser ? ' (You)' : ''}
-                          </p>
-                          {metric === 'PnL'  && (
-                            <p className="text-xs">
-                              Wallet: {portfolioWalletName(row, timeframe) ? portfolioWalletName(row,timeframe) : "No wallet created"}
-                            </p>
-                          )}
-                          {row.email !== '' && <p className="text-xs">{row.email}</p>}
+                        <td className="py-4 pr-4 font-semibold">#{row.rank}</td>
+                        <td className="py-4 pr-4">
+                          <p className="font-semibold">{row.username}{isCurrentUser ? ' (You)' : ''}</p>
+                          {row.email && <p className="text-xs text-[var(--muted-text-color)]">{row.email}</p>}
                         </td>
-                        <td className="py-3 text-right font-medium">
-                          {metric === 'xp' ? (
-                            <span>{Math.round(row.score).toLocaleString()}</span>
-                          ) : (
-                            <span
-                              className={`inline-flex items-center gap-1 ${
-                                row.score >= 0
-                                  ? 'text-green-600'
-                                  : 'text-red-600'
-                              }`}
-                            >
-                              <span>{row.score >= 0 ? '↑' : '↓'}</span>
-                              <span>{`${row.score >= 0 ? '+' : '-'}$${formatCurrency(Math.abs(row.score))}`}</span>
-                            </span>
-                          )}
+                        <td className="py-4 pr-4">
+                          <div className="space-y-1 text-xs text-[var(--muted-text-color)]">
+                            {metric === 'PnL' ? (
+                              <>
+                                <p>Wallet: {portfolioWalletName(row, timeframe) || 'No wallet'}</p>
+                                <p>Ranked score type: {scoreLabel(metric, timeframe)}</p>
+                              </>
+                            ) : (
+                              <p>XP All-time: {row.xpAllTime ?? 0}</p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-4 text-right font-semibold">
+                          <span className={row.score >= 0 ? 'text-green-600' : 'text-red-600'}>{formatLeaderboardScore(row.score, metric)}</span>
                         </td>
                       </tr>
                     );

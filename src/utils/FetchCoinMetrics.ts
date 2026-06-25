@@ -23,24 +23,24 @@ export function useFetchCoinMetrics(coinId?: string) {
     setError(null);
 
     
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}`;
+    const url = `https://api.coincap.io/v2/assets/${coinId}`;
 
     fetch(url)
       .then(res => {
-        if (!res.ok) throw new Error(`CoinGecko request failed with status: ${res.status}. Check coin ID.`);
+        if (!res.ok) throw new Error(`CoinCap request failed with status: ${res.status}. Check coin ID.`);
         return res.json();
       })
       .then(json => {
-        const marketData = json.market_data;
+        const asset = json.data;
 
         setData({
-          price: marketData.current_price.usd,
-          marketCap: marketData.market_cap.usd,
-          volume24h: marketData.total_volume.usd,
-          circulatingSupply: marketData.circulating_supply,
-          fullyDilutedValuation: marketData.fully_diluted_valuation?.usd ?? null, 
-          totalSupply: marketData.total_supply ?? marketData.max_supply,
-          change24h: marketData.price_change_percentage_24h,
+          price: parseFloat(asset.priceUsd),
+          marketCap: parseFloat(asset.marketCapUsd) || 0,
+          volume24h: parseFloat(asset.volumeUsd24Hr) || 0,
+          circulatingSupply: parseFloat(asset.supply) || 0,
+          fullyDilutedValuation: null,
+          totalSupply: parseFloat(asset.maxSupply) || parseFloat(asset.supply) || null,
+          change24h: parseFloat(asset.changePercent24Hr) || 0,
         });
       })
       .catch(err => {

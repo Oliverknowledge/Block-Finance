@@ -32,14 +32,32 @@ export function useFetchCryptoNews(coinName?: string) {
 
     setLoading(true);
     setError(null);
-    const apiKey = import.meta.env.VITE_NEWSDATA_API;
-    const url = `https://newsdata.io/api/1/crypto?apikey=${apiKey}&coin=${newsCode.toLowerCase()}`;
+    const authToken = import.meta.env.VITE_CRYPTOPANIC_API || '';
+    const url = `https://cryptopanic.com/api/v1/posts/?auth_token=${authToken}&currencies=${newsCode.toLowerCase()}&page=1`;
 
     fetch(url)
       .then(async (res) => {
         const json = await res.json();
         const results = Array.isArray(json?.results) ? json.results : [];
-        setData(results.slice(0, 6) as NewsItem[]);
+        type CryptoPanicItem = {
+          id: string;
+          title: string;
+          url: string;
+          body?: string;
+          published_at: string;
+          source?: {domain: string};
+        };
+        const newsItems: NewsItem[] = results.slice(0, 6).map((item: CryptoPanicItem) => ({
+          article_id: item.id,
+          title: item.title,
+          link: item.url,
+          description: item.body?.substring(0, 160) ?? null,
+          content: item.body ?? null,
+          pubDate: item.published_at,
+          image_url: null,
+          source_id: item.source?.domain ?? 'unknown',
+        }));
+        setData(newsItems);
       })
       .catch((err) => {
         console.error("News Fetch Error:", err);

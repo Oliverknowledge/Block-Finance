@@ -15,3 +15,15 @@ export type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export type AAuthProviderProps = { 
+
+  children: React.ReactNode;
+};
+export type AuthProviderState = {
+  user: User | null;
+  loading: boolean;
+
+};
+
+
+

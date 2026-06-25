@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle2, ChevronRight, CircleAlert, ShieldCheck, Wallet2, X } from 'lucide-react';
 import Button from '../Button';
 import Tooltip from '../Tooltip';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import stakeProvidersByChain from '../../data/stakeProviders';
 import { coinNameToTicker } from '../../data/tickers';
 import { CHAINS } from '../../lib/chainStakeData';
@@ -304,7 +304,7 @@ const StakePanels = () => {
     setSellingStakeId(sellConfirmStake.stakeid);
 
     try {
-      const result = await sellStake(user, sellConfirmStake.stakeid, lockupDays);
+      const result = await sellStake(sellConfirmStake.stakeid, lockupDays);
       if (!result.ok) {
         setMessage({ type: 'Error', message: result.error ?? 'Failed to sell staked funds.' });
         return;

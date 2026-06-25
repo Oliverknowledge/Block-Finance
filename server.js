@@ -9,24 +9,16 @@ app.use(cors());
 
 app.get("/api/coin", async (req, res) => {
   try {
-    const symbol = req.query.symbol;
-
-    const API_KEY = process.env.CMC_API_KEY;
-    const endpoint = "v1/cryptocurrency/listings/latest";
+    const coinId = req.query.id || req.query.symbol?.toLowerCase();
 
     const response = await axios.get(
-      `https://pro-api.coinmarketcap.com/${endpoint}?symbol=${symbol}`,
-      {
-        headers: {
-          "X-CMC_PRO_API_KEY": API_KEY,
-        },
-      }
+      `https://api.coincap.io/v2/assets/${coinId}`
     );
 
     res.json(response.data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed" });
+    res.status(500).json({ error: "Failed to fetch coin data from CoinCap" });
   }
 });
 

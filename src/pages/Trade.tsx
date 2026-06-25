@@ -6,7 +6,6 @@ import { useFetchCoinMetrics } from '../utils/FetchCoinMetrics';
 import { useFetchCryptoNews } from '../utils/FetchCryptoNews';
 import NewsCard from '../Components/NewsCard';
 import Button from '../Components/Button';
-import Tooltip from '../Components/Tooltip';
 import fetchWalletUSDTBalance from '../utils/FetchWalletUSDTBalance';
 import { useAuth } from '../hooks/useAuth';
 import placeMarketBuy from '../utils/actions/placeMarketBuy';
@@ -108,11 +107,12 @@ import type { wallet } from '../types/Wallet';
     const syncAfterTrade = async () => {
       await IncrementXP(user!, 10);
       await refreshWalletAndPosition();
+      return null;
     };
 
     const executeBuy =  async () => {
       setLoading(true);
-
+      
       try {
         const res = await placeMarketBuy(selectedWalletID, baseTicker, USD, tradePrice);
 
@@ -211,35 +211,36 @@ const setUSDFromPercent = (nextPercent: number) => {
 const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
 
     return (
-      <div className="px-6 md:px-20 pb-10  mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="px-6 md:px-10 py-8 pb-12 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-7">
+        <div className="lg:col-span-2 space-y-7">
 
-          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-4 md:p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className = "flex flex-row items-center gap-2">
-              <img
-              src={`https://img.logokit.com/crypto/${baseTicker}?token=${logoToken}`}
-              alt={`${baseTicker} logo`}
-              className="w-10 h-10 rounded-full shadow-md"
-            />
-                <h2 className="text-xl md:text-2xl font-semibold ">
-
-                  {coinName.charAt(0).toUpperCase() + coinName.slice(1)} ({baseTicker}/USDT)
-                </h2>
+          <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--surface-color)] p-6 md:p-7 shadow-soft">
+            <div className="flex flex-col gap-6 md:items-center md:flex-row md:justify-between mb-5">
+              <div className="flex items-center gap-4">
+                <img
+                  src={`https://img.logokit.com/crypto/${baseTicker}?token=${logoToken}`}
+                  alt={`${baseTicker} logo`}
+                  className="w-14 h-14 rounded-3xl shadow-sm"
+                />
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                    {coinName.charAt(0).toUpperCase() + coinName.slice(1)}
+                  </h2>
+                  <p className="text-sm text-[var(--muted-text-color)]">{baseTicker}/USDT</p>
                 </div>
-                
               </div>
-              <div className="mb-1 w-100">
-            <SearchBar
-              Search={(value) => {
-                setCoinName(value.toLowerCase());
-                }}
-            />
-          </div>
-              <div className="text-right">
-                <p className="text-[10px] uppercase ">Last price</p>
-                <p className="text-lg font-semibold ">
+
+              <div className="w-full max-w-xs">
+                <SearchBar
+                  Search={(value) => {
+                    setCoinName(value.toLowerCase());
+                  }}
+                />
+              </div>
+
+              <div className="rounded-3xl bg-[var(--muted-surface-color)] px-5 py-4 text-right shadow-sm">
+                <p className="text-[0.65rem] uppercase tracking-[0.24em] text-[var(--muted-text-color)]">Last price</p>
+                <p className="mt-2 text-2xl font-semibold">
                   {binanceLastPrice === null
                     ? '—'
                     : `$${binanceLastPrice.toLocaleString(undefined, {
@@ -249,20 +250,20 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
                 </p>
                 {binanceChange24h !== null && (
                   <p
-                    className={`text-xs font-medium ${
+                    className={`mt-1 text-sm font-semibold ${
                       binanceChange24h >= 0
                         ? 'text-green-600'
                         : 'text-red-600'
                     }`}
                   >
-                    {binanceChange24h >= 0 ? '↑' : '↓'}{' '}
-                    {binanceChange24h.toFixed(2)}% (24h)
+                    {binanceChange24h >= 0 ? '↑' : '↓'} {binanceChange24h.toFixed(2)}%
                   </p>
                 )}
               </div>
             </div>
+
             {!showBeginnerTooltips && (
-              <div className="mb-3 flex justify-end gap-2">
+              <div className="mb-5 flex flex-wrap gap-3 justify-end">
                 <Button
                   type="button"
                   size="sm"
@@ -283,82 +284,61 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
                 </Button>
               </div>
             )}
-            <TradingViewChart
-              coin={coinName}
-              mode={chartMode}
-              onMarketDataChange={handleMarketDataChange}
-            />
-          
 
-          <div className="rounded-2xl p-4 md:p-5">
-            {metricsError && (
-              <p className="text-xs text-red-600 mb-2">
-                Metrics unavailable for this asset: {metricsError}
-              </p>
-            )}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs md:text-sm">
-              <div>
-                <p className="mb-1">
-                  {showBeginnerTooltips ? (
-                    <Tooltip text="Price multiplied by circulating supply.">Market cap</Tooltip>
-                  ) : (
-                    'Market cap'
-                  )}
+            <div className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4 shadow-sm mb-6">
+              <TradingViewChart
+                coin={coinName}
+                mode={chartMode}
+                onMarketDataChange={handleMarketDataChange}
+              />
+            </div>
+
+            <div className="rounded-[1.75rem] border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-6 md:p-7 shadow-sm">
+              {metricsError && (
+                <p className="text-xs text-red-500 mb-4">
+                  Metrics unavailable for this asset: {metricsError}
                 </p>
-                <p className="font-semibold ">
-                  {metrics
-                    ? `$${(metrics.marketCap / 10**9).toFixed(2)}B`
-                    : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1">
-                  {showBeginnerTooltips ? (
-                    <Tooltip text="Total traded value over the last 24 hours.">24h volume</Tooltip>
-                  ) : (
-                    '24h volume'
-                  )}
-                </p>
-                <p className="font-semibold ">
-                  {metrics
-                    ? `$${(metrics.volume24h / 10**9).toFixed(2)}B`
-                    : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1">
-                  {showBeginnerTooltips ? (
-                    <Tooltip text="Value if max token supply were all in circulation.">FDV</Tooltip>
-                  ) : (
-                    'FDV'
-                  )}
-                </p>
-                <p className="font-semibold ">
-                  {metrics?.fullyDilutedValuation
-                    ? `$${(metrics.fullyDilutedValuation / 10**9).toFixed(2)}B`
-                    : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1">
-                  {showBeginnerTooltips ? (
-                    <Tooltip text="Tokens currently available on the market.">Circulating Supply</Tooltip>
-                  ) : (
-                    'Circulating Supply'
-                  )}
-                </p>
-                <p className="font-semibold ">
-                  {metrics?.circulatingSupply
-                    ? `$${(metrics.circulatingSupply / 10**9).toFixed(2)}B`
-                    : 'N/A'}
-                </p>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-xs md:text-sm">
+                <div className="rounded-3xl bg-white/80 p-4 shadow-sm">
+                  <p className="mb-1 text-[var(--muted-text-color)]">Market cap</p>
+                  <p className="font-semibold ">
+                    {metrics
+                      ? `$${(metrics.marketCap / 10 ** 9).toFixed(2)}B`
+                      : '—'}
+                  </p>
+                </div>
+                <div className="rounded-3xl bg-white/80 p-4 shadow-sm">
+                  <p className="mb-1 text-[var(--muted-text-color)]">24h volume</p>
+                  <p className="font-semibold ">
+                    {metrics
+                      ? `$${(metrics.volume24h / 10 ** 9).toFixed(2)}B`
+                      : '—'}
+                  </p>
+                </div>
+                <div className="rounded-3xl bg-white/80 p-4 shadow-sm">
+                  <p className="mb-1 text-[var(--muted-text-color)]">FDV</p>
+                  <p className="font-semibold ">
+                    {metrics?.fullyDilutedValuation
+                      ? `$${(metrics.fullyDilutedValuation / 10 ** 9).toFixed(2)}B`
+                      : 'N/A'}
+                  </p>
+                </div>
+                <div className="rounded-3xl bg-white/80 p-4 shadow-sm">
+                  <p className="mb-1 text-[var(--muted-text-color)]">Circulating Supply</p>
+                  <p className="font-semibold ">
+                    {metrics?.circulatingSupply
+                      ? `$${(metrics.circulatingSupply / 10 ** 9).toFixed(2)}B`
+                      : 'N/A'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-          </div>
-          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-5 md:p-6">
-            <h2 className="text-lg font-semibold mb-3 ">
-              News
+
+          <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--surface-color)] p-6 md:p-7 shadow-soft">
+            <h2 className="text-lg font-semibold mb-6 uppercase tracking-wider text-[var(--text-color)]">
+              Latest News
             </h2>
 
 
@@ -401,89 +381,81 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
         </div>
 
         <div className="lg:col-span-1">
-          <div className="rounded-2xl shadow-sm border border-[var(--border-color)] bg-[var(--surface-color)] p-3 sticky top-24">
-            <div className = "w-full flex items-center justify-center mb-4">
-          <h3 className = "text-3xl ">Spot</h3>
-          </div>
-          <div className="w-full border border-[var(--border-color)]" />
-            <div className="flex mb-4 rounded-lg overflow-hidden  ">
+          <div className="rounded-[2rem] border border-[var(--border-color)] bg-[var(--surface-color)] p-6 shadow-soft sticky top-24">
+            <div className="flex flex-col gap-4 items-center text-center mb-6">
+              <h3 className="text-2xl font-semibold tracking-tight">Spot Trading</h3>
+              <p className="text-sm text-[var(--muted-text-color)] max-w-xs">
+                Fast order entry, wallet selection, and position summary in one panel.
+              </p>
+            </div>
+
+            <div className="flex gap-3 mb-6 rounded-[1.5rem] overflow-hidden bg-[var(--muted-surface-color)] p-2">
               <Button
-                variant = {`${side === 'buy' ? 'green' : 'secondary' }`}
-                size = "lg"
+                variant={side === 'buy' ? 'primary' : 'secondary'}
+                size="lg"
                 type="button"
                 onClick={() => setSide('buy')}
-                className={`flex-1  ${
-                  side === 'buy'
-                    ? ' '
-                    : ''
-                }`}
+                className="flex-1 rounded-[1.25rem]"
               >
                 Buy
               </Button>
               <Button
-                size = "lg"
-                variant = {`${side === 'sell' ? 'red' : 'secondary'}`}
+                size="lg"
+                variant={side === 'sell' ? 'primary' : 'secondary'}
                 type="button"
                 onClick={() => setSide('sell')}
-                className={`flex-1 py-2 text-sm font-medium transition-all ${
-                  side === 'sell'
-                    ? ' '
-                    : ''
-                }`}
+                className="flex-1 rounded-[1.25rem]"
               >
                 Sell
               </Button>
             </div>
-            <div>
-                <label className="block text-sm font-medium my-3 ">
-                  Select Wallet
-                </label>
-                <select
-                  value={selectedWalletID}
-                  onChange={(e) => setSelectedWalletID(String(e.target.value))}
-                  className="w-full px-4 py-2 border border-[var(--border-color)] rounded-md bg-[var(--background-color)] text-[var(--text-color)]"
-                >
-                  {wallets.map((wallet) => (
-                    <option key={wallet.walletid} value={String(wallet.walletid)}>
-                      {wallet.name} - ${wallet.usdt_balance?.toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            <form onSubmit={side == 'buy' ? handleBuy : handleSell} className="space-y-4 mt-4">
-              
-              <div>
-                <label className="block text-sm font-medium mb-2">
+
+            <div className="mb-6 space-y-3">
+              <label className="block text-sm font-medium">Select Wallet</label>
+              <select
+                value={selectedWalletID}
+                onChange={(e) => setSelectedWalletID(String(e.target.value))}
+                className="select"
+              >
+                {wallets.map((wallet) => (
+                  <option key={wallet.walletid} value={String(wallet.walletid)}>
+                    {wallet.name} - ${wallet.usdt_balance?.toLocaleString()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <form onSubmit={side === 'buy' ? handleBuy : handleSell} className="space-y-5">
+              <div className="space-y-3">
+                <label className="block text-sm font-medium">
                   {side === 'buy' ? 'Buy' : 'Sell'} Amount
                 </label>
-                <div className="border border-[var(--border-color)] rounded-lg p-4">
-                  <div className="flex flex-row space-x-10 justify-between w-full">
-                    <div className = "flex items-center   ">
-                    <input
-                      type="number"
-                      step="any"
-                      value={USD || ''}
-                      onChange={(e) => setUSDFromAmount(parseFloat(e.target.value) || 0)}
-                      placeholder="0.0"
-                      className="text-2xl font-medium bg-transparent focus:outline-none w-24"
-                    />
-                  <span className="text-sm ">USD</span>
+                <div className="rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-baseline gap-2">
+                      <input
+                        type="number"
+                        step="any"
+                        value={USD || ''}
+                        onChange={(e) => setUSDFromAmount(parseFloat(e.target.value) || 0)}
+                        placeholder="0.0"
+                        className="text-2xl font-semibold bg-transparent focus:outline-none w-28"
+                      />
+                      <span className="text-sm text-[var(--muted-text-color)]">USD</span>
                     </div>
-                    <div className = "flex items-center gap-2">
-                    <input
-                      type="number"
-                      step="any"
-                      value={currentPrice > 0 ? USD / currentPrice : 0}
-                      onChange={(e) => {
-                        const assetAmount = parseFloat(e.target.value) || 0;
-                        setUSDFromAmount(assetAmount * currentPrice);
-                      }}
-                      placeholder="0.00"
-                      className="text-lg text-[var(--muted-text-color)] bg-transparent focus:outline-none w-24"
-                    />
-                    <span className="text-sm font-medium ">
-                        {baseTicker}
-                      </span>
+                    <div className="flex items-center gap-2 text-sm text-[var(--muted-text-color)]">
+                      <input
+                        type="number"
+                        step="any"
+                        value={currentPrice > 0 ? USD / currentPrice : 0}
+                        onChange={(e) => {
+                          const assetAmount = parseFloat(e.target.value) || 0;
+                          setUSDFromAmount(assetAmount * currentPrice);
+                        }}
+                        placeholder="0.00"
+                        className="w-24 bg-transparent focus:outline-none"
+                      />
+                      <span>{baseTicker}</span>
                       <img
                         src={`https://img.logokit.com/crypto/${baseTicker}?token=${logoToken}`}
                         alt={baseTicker}
@@ -491,11 +463,10 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
                       />
                     </div>
                   </div>
-                
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-medium">
                     {side === 'buy' ? 'Wallet' : 'Position'} Percentage
@@ -518,13 +489,13 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
                           : 'secondary'
                       }
                       onClick={() => setUSDFromPercent(preset)}
-                      className="w-full"
+                      className="w-full rounded-[1rem]"
                     >
                       {preset}%
                     </Button>
                   ))}
                 </div>
-                <div className=" rounded-lg p-3 flex items-center gap-2">
+                <div className="rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-3 flex items-center gap-3">
                   <input
                     type="number"
                     min="0"
@@ -533,113 +504,91 @@ const isInvalidTradeAmount = USD <= 0 || tradePrice <= 0;
                     value={percentage}
                     onChange={(e) => setUSDFromPercent(parseFloat(e.target.value) || 0)}
                     placeholder="0"
-                    className="text-lg font-medium bg-transparent focus:outline-none w-20"
+                    className="w-20 text-lg font-medium bg-transparent focus:outline-none"
                   />
                   <span className="text-sm">%</span>
                 </div>
               </div>
 
-              <div className="pt-2">
-                <div className="flex justify-between text-xs text-[var(--muted-text-color)] mb-1">
-                  <span>Slippage:</span>
-                  <span className="font-medium">2%</span>
-                </div>
+              <div className="flex justify-between text-xs text-[var(--muted-text-color)]">
+                <span>Slippage</span>
+                <span className="font-medium">2%</span>
               </div>
 
               {isInvalidTradeAmount ? (
-  <Button
-    type="submit"
-    variant={side === 'buy' ? 'green' : 'red'}
-    size="lg"
-    className="w-full"
-    disabled
-  >
-    Invalid {side === 'buy' ? 'Buy' : 'Sell'} Amount
-  </Button>
-) : (
-  <>
-    {!loading ? (
-      <Button
-        type="submit"
-        variant={side === 'buy' ? 'green' : 'red'}
-        size="lg"
-        className="w-full"
-
-      >
-        {side === 'buy' ? 'Total Buy Amount' : 'Total Sell Amount'}: $
-        {USD.toFixed(2)}
-      </Button>
-    ) : (
-      <Button
-        type="submit"
-        variant={side === 'buy' ? 'green' : 'red'}
-        size="lg"
-        className="w-full"
-        disabled
-      >
-        Processing...
-      </Button>
-    )}
-  </>
-)}
-
+                <Button
+                  type="submit"
+                  variant={side === 'buy' ? 'green' : 'red'}
+                  size="lg"
+                  className="w-full"
+                  disabled
+                >
+                  Invalid {side === 'buy' ? 'Buy' : 'Sell'} Amount
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  variant={side === 'buy' ? 'green' : 'red'}
+                  size="lg"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : `${side === 'buy' ? 'Buy' : 'Sell'} $${USD.toFixed(2)}`}
+                </Button>
+              )}
             </form>
-        {activePosition && activePosition.availableqty > 0 && (
-  <div className="mt-6 rounded-xl border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4 space-y-2">
-    <h4 className="text-sm font-semibold">Position</h4>
 
-    <div className="flex justify-between text-sm">
-      <span>Quantity</span>
-        <span>
-        {activePosition.availableqty.toFixed(6)} {baseTicker}
-      </span>
-    </div>
+            {activePosition && activePosition.availableqty > 0 && (
+              <div className="mt-6 rounded-[1.5rem] border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-4 space-y-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Position</h4>
+                  <span className="text-xs text-[var(--muted-text-color)]">Live overview</span>
+                </div>
 
-    <div className="flex justify-between text-sm">
-      <span>Avg Cost</span>
-      <span>${activePosition.avgcost.toFixed(2)}</span>
-    </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Quantity</span>
+                    <span>{activePosition.availableqty.toFixed(6)} {baseTicker}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Avg Cost</span>
+                    <span>${activePosition.avgcost.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Market Price</span>
+                    <span>${currentPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Position Value</span>
+                    <span>${positionValue.toFixed(2)}</span>
+                  </div>
+                </div>
 
-    <div className="flex justify-between text-sm">
-      <span>Market Price</span>
-      <span>${currentPrice.toFixed(2)}</span>
-    </div>
+                {showWhatIfBox && (
+                  <div className="rounded-[1.25rem] border border-[var(--border-color)] bg-[var(--surface-color)] p-3">
+                    <p className="text-xs font-semibold mb-2">What If</p>
+                    <div className="space-y-2 text-xs">
+                      {whatIfScenarios.map((percent) => {
+                        const projectedBalance = positionValue * (1 + percent / 100);
+                        return (
+                          <div key={percent} className="flex justify-between">
+                            <span>{percent > 0 ? `+${percent}%` : `${percent}%`}</span>
+                            <span>${projectedBalance.toFixed(2)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-    <div className="flex justify-between text-sm">
-      <span>Position Value</span>
-      <span>${positionValue.toFixed(2)}</span>
-    </div>
-
-    {showWhatIfBox && (
-      <div className="rounded-lg border border-[var(--border-color)] bg-[var(--muted-surface-color)] p-3">
-        <p className="text-xs font-semibold">What If</p>
-        <div className="mt-2 space-y-1 text-xs">
-          {whatIfScenarios.map((percent) => {
-            const projectedBalance = positionValue * (1 + percent / 100);
-            return (
-              <div key={percent} className="flex items-center justify-between">
-                <span>{percent > 0 ? `+${percent}%` : `${percent}%`}</span>
-                <span>${projectedBalance.toFixed(2)}</span>
+                <div className="flex justify-between text-sm font-semibold">
+                  <span>PnL</span>
+                  <span className={unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {unrealizedPnL >= 0 ? '+' : ''}${unrealizedPnL.toFixed(2)} ({pnlPercent.toFixed(2)}%)
+                  </span>
+                </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
-    )}
-
-    <div className="flex justify-between text-sm font-medium">
-      <span>PnL</span>
-      <span
-        className={
-          unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600'
-        }
-      >
-        {unrealizedPnL >= 0 ? '+' : ''}
-        ${unrealizedPnL.toFixed(2)} ({pnlPercent.toFixed(2)}%)
-      </span>
-    </div>
-  </div>
-)}
+            )}
           </div>
         </div>
 
